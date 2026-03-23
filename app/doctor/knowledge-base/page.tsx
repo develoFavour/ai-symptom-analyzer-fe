@@ -1,0 +1,327 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+    Search, Loader2, BookOpen, AlertCircle,
+    Filter, ShieldCheck, Globe, Bookmark, Clock,
+    AlertTriangle, ChevronRight, Info
+} from "lucide-react";
+import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+
+interface KnowledgeEntry {
+    id: string;
+    title: string;
+    source: string;
+    category: string;
+    description: string;
+    tags: string;
+    is_epidemic_alert: boolean;
+    region: string;
+    urgency_score: number;
+    created_at: string;
+}
+
+interface PaginatedResponse<T> {
+    items: T[];
+    total_items: number;
+    total_pages: number;
+    page: number;
+    limit: number;
+}
+
+export default function DoctorKnowledgeBase() {
+    const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState("all");
+    const [selectedEntry, setSelectedEntry] = useState<KnowledgeEntry | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<Omit<PaginatedResponse<any>, 'items'>>({
+        total_items: 0,
+        total_pages: 0,
+        page: 1,
+        limit: 20
+    });
+
+    const fetchEntries = async () => {
+        setIsLoading(true);
+        const params = new URLSearchParams({
+            page: currentPage.toString(),
+            limit: "12", // 3 columns * 4 rows
+            search: searchQuery,
+            category: activeCategory === "all" || activeCategory === "alerts" ? "" : activeCategory,
+            is_epidemic_alert: activeCategory === "alerts" ? "true" : ""
+        });
+
+        const res = await api.get<PaginatedResponse<KnowledgeEntry>>(`/api/v1/doctor/knowledge/entries?${params.toString()}`);
+        if (res.success && res.data) {
+            setEntries(res.data.items);
+            setPagination({
+                total_items: res.data.total_items,
+                total_pages: res.data.total_pages,
+                page: res.data.page,
+                limit: res.data.limit
+            });
+        }
+        setIsLoading(false);
+    };
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            fetchEntries();
+        }, 300); // Debounce search
+        return () => clearTimeout(timeoutId);
+    }, [currentPage, activeCategory, searchQuery]);
+
+    // Reset to page 1 when category or search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeCategory, searchQuery]);
+
+    const categories = [
+        { id: "all", label: "All Literature" },
+        { id: "alerts", label: "Epidemic Alerts", icon: AlertTriangle },
+        { id: "infectious_diseases", label: "Infectious" },
+        { id: "chronic_conditions", label: "Chronic" },
+        { id: "emergency_protocol", label: "Emergency" },
+        { id: "pediatrics", label: "Pediatrics" },
+    ];
+
+    return (
+        <div className="max-w-7xl mx-auto space-y-10 pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 lg:px-0">
+                <div>
+                    <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">Clinical Library</h1>
+                    <p className="text-white/40 mt-1 text-lg font-medium italic">Verified medical protocols & diagnostic guidelines.</p>
+                </div>
+
+                <div className="hidden lg:flex items-center gap-3 px-6 py-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                    <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Certified Intelligence Source</span>
+                </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="space-y-6 px-4 lg:px-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-2">
+                    <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCategory(cat.id)}
+                                className={cn(
+                                    "pb-4 px-2 text-sm font-black uppercase tracking-[0.2em] relative transition-all whitespace-nowrap flex items-center gap-2",
+                                    activeCategory === cat.id ? "text-white" : "text-white/20 hover:text-white/40"
+                                )}
+                            >
+                                {cat.icon && <cat.icon className={cn("h-4 w-4", activeCategory === cat.id ? "text-red-500" : "text-white/20")} />}
+                                {cat.label}
+                                {activeCategory === cat.id && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-full animate-in slide-in-from-bottom-2 duration-300" />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="relative group w-full md:w-80">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-white transition-colors" />
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search clinical protocols..."
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3 text-white text-sm focus:outline-none focus:border-white/30 transition-all font-bold"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* View Switching Logic */}
+            {selectedEntry ? (
+                <div className="px-4 lg:px-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <button
+                        onClick={() => setSelectedEntry(null)}
+                        className="mb-8 flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
+                    >
+                        <ChevronRight className="h-4 w-4 rotate-180" />
+                        <span className="text-xs font-black uppercase tracking-widest">Back to Library</span>
+                    </button>
+
+                    <div className="bg-[#0c0c0c] border border-white/5 rounded-[3rem] p-8 lg:p-16 space-y-10 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-16 opacity-[0.02] pointer-events-none">
+                            <BookOpen className="h-64 w-64 text-white" />
+                        </div>
+
+                        <div className="space-y-6 relative z-10">
+                            <div className="flex flex-wrap items-center gap-4">
+                                <span className={cn(
+                                    "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5 flex items-center gap-2",
+                                    selectedEntry.is_epidemic_alert ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/5 text-white/40"
+                                )}>
+                                    {selectedEntry.is_epidemic_alert ? <AlertTriangle className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                                    Source: {selectedEntry.source}
+                                </span>
+                                <span className="px-4 py-1.5 rounded-full text-[10px] bg-white/5 text-white/40 font-black uppercase tracking-widest border border-white/5">
+                                    Category: {selectedEntry.category.replace("_", " ")}
+                                </span>
+                            </div>
+
+                            <h2 className="text-4xl lg:text-6xl font-black text-white italic tracking-tighter uppercase leading-tight max-w-4xl">
+                                {selectedEntry.title}
+                            </h2>
+                        </div>
+
+                        <div className="grid lg:grid-cols-4 gap-12 relative z-10">
+                            <div className="lg:col-span-3 space-y-8">
+                                <div className="prose prose-invert max-w-none">
+                                    <div className="p-8 lg:p-12 bg-white/5 rounded-[2.5rem] border border-white/5 text-white/60 leading-[2] text-lg font-medium whitespace-pre-wrap">
+                                        {selectedEntry.description}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-8">
+                                <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5 space-y-6">
+                                    <div className="flex items-center gap-3 text-white/40">
+                                        <Info className="h-5 w-5" />
+                                        <h4 className="text-xs font-black uppercase tracking-widest">Metadata</h4>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-[10px] text-white/20 font-black uppercase tracking-widest mb-1">Last Indexed</p>
+                                            <p className="text-sm text-white font-bold">{format(new Date(selectedEntry.created_at), "MMMM d, yyyy")}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-white/20 font-black uppercase tracking-widest mb-1">Clinical Tags</p>
+                                            <div className="flex flex-wrap gap-2 pt-2">
+                                                {selectedEntry.tags.split(",").map(tag => (
+                                                    <span key={tag} className="px-2 py-1 rounded-md bg-white/5 text-white/40 text-[9px] font-bold uppercase tracking-wider">{tag.trim()}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {selectedEntry.is_epidemic_alert && (
+                                            <div>
+                                                <p className="text-[10px] text-red-500/40 font-black uppercase tracking-widest mb-1">Active Monitoring</p>
+                                                <p className="text-sm text-red-500 font-bold">Region: {selectedEntry.region}</p>
+                                                <p className="text-[10px] text-red-500/60 font-medium mt-1 uppercase italic tracking-tighter">Urgency Score: {selectedEntry.urgency_score}/10</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                /* Entry Grid */
+                <div className="grid gap-6 px-4 lg:px-0">
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-32 gap-6 text-white/20">
+                            <Loader2 className="h-12 w-12 animate-spin" />
+                            <p className="text-xs font-black uppercase tracking-[0.3em]">Accessing Medical Archives...</p>
+                        </div>
+                    ) : entries.length === 0 ? (
+                        <div className="bg-white/5 border border-white/5 rounded-[3rem] p-32 text-center border-dashed">
+                            <BookOpen className="h-20 w-20 mx-auto mb-8 text-white/5" />
+                            <h3 className="text-2xl font-black text-white/40 italic uppercase tracking-tighter">No Matches Found</h3>
+                            <p className="text-white/20 text-md mt-2 font-medium">Adjust your filters or broaden your search criteria.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-12">
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {entries.map(entry => (
+                                    <div
+                                        key={entry.id}
+                                        onClick={() => setSelectedEntry(entry)}
+                                        className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-8 space-y-6 hover:bg-white/[0.03] hover:border-emerald-500/20 transition-all group cursor-pointer relative overflow-hidden"
+                                    >
+                                        {entry.is_epidemic_alert && (
+                                            <div className="absolute top-0 right-0 h-32 w-32 bg-red-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                                        )}
+
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className={cn(
+                                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5 flex items-center gap-2",
+                                                    entry.is_epidemic_alert ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/5 text-white/40"
+                                                )}>
+                                                    {entry.is_epidemic_alert ? <AlertTriangle className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                                                    {entry.source}
+                                                </span>
+                                                <ChevronRight className="h-4 w-4 text-white/10 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <h3 className="text-xl font-bold text-white tracking-tight line-clamp-2 leading-tight group-hover:text-emerald-400 transition-colors uppercase italic">{entry.title}</h3>
+                                                <p className="text-sm text-white/40 line-clamp-3 leading-relaxed font-medium">{entry.description}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[10px] text-white/20 font-black uppercase tracking-[0.15em]">
+                                                <Clock className="h-3.5 w-3.5" />
+                                                {format(new Date(entry.created_at), "MMM d, yyyy")}
+                                            </div>
+                                            <span className="text-[10px] text-white/40 font-black uppercase tracking-widest">{entry.category.replace("_", " ")}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {pagination.total_pages > 1 && (
+                                <div className="flex items-center justify-center gap-4 py-8 border-t border-white/5">
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        className="h-10 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 disabled:hover:text-white/40 transition-all flex items-center gap-2 group"
+                                    >
+                                        <ChevronRight className="h-4 w-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+                                        Previous
+                                    </button>
+
+                                    <div className="flex items-center gap-2">
+                                        {Array.from({ length: pagination.total_pages }, (_, i) => i + 1)
+                                            .filter(p => p === 1 || p === pagination.total_pages || Math.abs(p - currentPage) <= 1)
+                                            .map((p, index, array) => (
+                                                <div key={p} className="flex items-center gap-2">
+                                                    {index > 0 && array[index - 1] !== p - 1 && (
+                                                        <span className="text-white/20 text-xs font-black">...</span>
+                                                    )}
+                                                    <button
+                                                        onClick={() => setCurrentPage(p)}
+                                                        className={cn(
+                                                            "h-10 w-10 rounded-xl text-[10px] font-black uppercase transition-all",
+                                                            currentPage === p
+                                                                ? "bg-white text-black"
+                                                                : "bg-white/5 text-white/20 hover:text-white border border-white/5"
+                                                        )}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
+
+                                    <button
+                                        disabled={currentPage === pagination.total_pages}
+                                        onClick={() => setCurrentPage(prev => Math.min(pagination.total_pages, prev + 1))}
+                                        className="h-10 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-30 disabled:hover:text-white/40 transition-all flex items-center gap-2 group"
+                                    >
+                                        Next
+                                        <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}

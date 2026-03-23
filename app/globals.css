@@ -48,82 +48,313 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Image 2 Inspired Palette: Deep Pine/Teal */
+  --primary: oklch(0.25 0.04 180);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --background: oklch(0.18 0.03 180);
+  /* Deep Background */
+  --foreground: oklch(0.98 0.01 180);
+
+  --card: oklch(0.25 0.04 180 / 40%);
+  --card-foreground: oklch(0.98 0 0);
+
+  --popover: oklch(0.22 0.04 180);
+  --popover-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.98 0 0 / 10%);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.25 0.02 180);
+  --muted-foreground: oklch(0.8 0.02 180);
+
+  --accent: oklch(0.45 0.1 190);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.98 0 0 / 20%);
+  --input: oklch(0.98 0 0 / 10%);
+  --ring: oklch(0.98 0 0 / 40%);
+
+  --radius: 2rem;
+  /* Large rounded corners from Image 2 */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0.00 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: oklch(0.1 0.02 240);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.15 0.02 240);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.15 0.02 240);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.65 0.18 185);
+  --primary-foreground: oklch(0.1 0.02 240);
+  --secondary: oklch(0.22 0.03 200);
+  --secondary-foreground: oklch(0.85 0 0);
+  --muted: oklch(0.2 0.02 220);
+  --muted-foreground: oklch(0.6 0.02 220);
+  --accent: oklch(0.25 0.05 185);
+  --accent-foreground: oklch(0.85 0.05 185);
+  --destructive: oklch(0.65 0.2 22);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.65 0.18 185);
+  --sidebar: oklch(0.13 0.02 240);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.65 0.18 185);
+  --sidebar-primary-foreground: oklch(0.1 0.02 240);
+  --sidebar-accent: oklch(0.25 0.05 185);
+  --sidebar-accent-foreground: oklch(0.85 0.05 185);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.65 0.18 185);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
+}
+
+/* ── Auth Panel Animations ─────────────────────────────────────────────────── */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-18px) rotate(2deg);
+  }
+
+  66% {
+    transform: translateY(-8px) rotate(-1deg);
+  }
+}
+
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-24px);
+  }
+}
+
+@keyframes float-reverse {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(13, 148, 136, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 50px rgba(13, 148, 136, 0.7), 0 0 80px rgba(13, 148, 136, 0.3);
+  }
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  14% {
+    transform: scale(1.08);
+  }
+
+  28% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.05);
+  }
+
+  56%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 300;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blob {
+
+  0%,
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+/* Utility classes */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+.animate-blob {
+  animation: blob 8s ease-in-out infinite;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-700 {
+  animation-delay: 0.7s;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-1500 {
+  animation-delay: 1.5s;
+}
+
+.delay-2000 {
+  animation-delay: 2s;
+}
+
+.delay-3000 {
+  animation-delay: 3s;
+}
+
+/* Image 2 Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(25px) saturate(150%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.auth-input {
+  @apply bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-white/50 focus:ring-4 focus:ring-white/5 transition-all duration-300 rounded-3xl h-14 backdrop-blur-sm;
+}
+
+.gradient-teal {
+  background: radial-gradient(circle at center, #1b4d4d 0%, #0d2a2a 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #0d9488 0%, #065f46 100%);
+}
+
+/* Heartbeat line SVG */
+.heartbeat-line {
+  stroke-dasharray: 300;
+  animation: draw-line 2s ease-in-out infinite alternate;
 }
