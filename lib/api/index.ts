@@ -53,7 +53,7 @@ axiosInstance.interceptors.response.use(
 
             try {
                 await axios.post(
-                    `${axiosInstance.defaults.baseURL}/api/v1/auth/refresh`,
+                    `${axiosInstance.defaults.baseURL}/auth/refresh`,
                     {},
                     { withCredentials: true }
                 );

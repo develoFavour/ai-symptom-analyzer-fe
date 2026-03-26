@@ -312,6 +312,10 @@
   animation-delay: 0.5s;
 }
 
+.delay-600 {
+  animation-delay: 0.6s;
+}
+
 .delay-700 {
   animation-delay: 0.7s;
 }
@@ -357,4 +361,41 @@
 .heartbeat-line {
   stroke-dasharray: 300;
   animation: draw-line 2s ease-in-out infinite alternate;
+}
+
+/* Hero scan line */
+@keyframes scan {
+  0%   { transform: translateY(0%); opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.animate-scan {
+  animation: scan 3s ease-in-out infinite;
+}
+
+/* Pulse ring expand */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.2s ease-out infinite;
+}
+
+/* Subtle marquee for token scroll */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 18s linear infinite;
+}
+
+/* Blink cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }

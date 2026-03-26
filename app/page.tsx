@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ROUTES } from "@/constants/route.constants";
 import {
@@ -22,7 +21,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen gradient-teal overflow-x-hidden font-sans selection:bg-white/20">
       {/* ── Navigation ─────────────────────────────────────────────────── */}
-      <nav className="fixed top-4 lg:top-6 left-1/2 -translate-x-1/2 w-[95%] lg:w-[90%] max-w-7xl z-50 glass rounded-full px-4 lg:px-8 py-3 lg:py-4 border border-white/10 shadow-2xl">
+      <nav className="fixed top-4 lg:top-6 left-1/2 -translate-x-1/2 w-[92%] lg:w-[88%] max-w-7xl z-50 glass rounded-full px-6 lg:px-10 py-3 lg:py-4 border border-white/10 shadow-2xl">
         <div className="flex items-center justify-between">
           <Link href={ROUTES.HOME} className="flex items-center gap-2 lg:gap-3 group">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white/10 rounded-xl lg:rounded-2xl flex items-center justify-center border border-white/20 transition-all group-hover:scale-110">
@@ -55,67 +54,179 @@ export default function Home() {
       </nav>
 
       {/* ── Hero Section ──────────────────────────────────────────────── */}
-      <section className="relative pt-32 lg:pt-56 pb-16 lg:pb-32 px-4 lg:px-6 overflow-visible">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-          <div className="flex-1 space-y-6 lg:space-y-10 text-center lg:text-left z-10 w-full">
+      <section className="relative pt-32 lg:pt-48 pb-16 lg:pb-32 px-6 sm:px-10 lg:px-12 overflow-hidden">
+
+        {/* Dot-grid background */}
+        <div className="absolute inset-0 pointer-events-none -z-0"
+          style={{backgroundImage:"radial-gradient(circle, rgba(6,182,212,0.07) 1px, transparent 1px)", backgroundSize:"38px 38px"}} />
+
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+          {/* ── Left: Headline + CTAs ── */}
+          <div className="flex-1 space-y-6 lg:space-y-10 text-center lg:text-left w-full">
             <div className="inline-flex items-center gap-3 px-4 py-2 lg:px-5 lg:py-2.5 rounded-full glass border border-white/10 text-white/90 text-xs lg:text-sm font-medium animate-fade-in shadow-xl mx-auto lg:mx-0">
-              <span className="flex h-2 w-2">
+              <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
               Clinical-Grade Intelligence
             </div>
 
-            <h1 className="text-4xl lg:text-8xl font-medium text-white leading-[1.1] lg:leading-[1] tracking-tight animate-slide-up">
+            <h1 className="text-5xl lg:text-8xl font-medium text-white leading-[1.05] tracking-tight animate-slide-up">
               Redefining <br />
               <span className="italic font-light opacity-60">Human Triage</span>
             </h1>
 
-            <p className="text-white/60 text-lg lg:text-2xl leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light animate-slide-up delay-100">
+            <p className="text-white/60 text-lg lg:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0 font-light animate-slide-up delay-100">
               Advanced AI models trained on verified clinical datasets to provide
               secure, instant health diagnostics and seamless provider connectivity.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 lg:gap-6 pt-6 animate-slide-up delay-200">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 lg:gap-6 pt-2 animate-slide-up delay-200">
               <Link href={ROUTES.REGISTER}>
-                <Button className="h-14 lg:h-16 px-8 lg:px-10 rounded-full bg-white text-[#0a2a2a] text-lg lg:text-xl font-bold shadow-2xl shadow-white/5 hover:scale-105 active:scale-95 transition-all">
+                <Button className="h-14 lg:h-16 px-8 lg:px-10 rounded-full bg-white text-[#0a2a2a] text-base lg:text-lg font-bold shadow-2xl shadow-white/5 hover:scale-105 active:scale-95 transition-all">
                   Begin Triage
-                  <ArrowRight className="ml-3 w-5 h-5 lg:w-6 lg:h-6" />
+                  <ArrowRight className="ml-3 w-5 h-5" />
                 </Button>
               </Link>
-
-              <div className="glass px-5 py-3 lg:px-6 lg:py-4 rounded-3xl flex items-center justify-center lg:justify-start gap-4 border border-white/5">
+              <div className="glass px-5 py-3 rounded-3xl flex items-center justify-center lg:justify-start gap-4 border border-white/5">
                 <div className="flex -space-x-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-[#0a2a2a] bg-white/20 backdrop-blur-md overflow-hidden">
+                    <div key={i} className="w-9 h-9 rounded-full border-2 border-[#0a2a2a] bg-white/20 backdrop-blur-md overflow-hidden">
                       <img src={`https://i.pravatar.cc/40?u=${i + 10}`} alt="user" className="opacity-80" />
                     </div>
                   ))}
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-white text-xs lg:text-sm font-bold">10k+ Providers</span>
+                  <span className="text-white text-sm font-bold">10k+ Providers</span>
                   <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-2.5 h-2.5 lg:w-3 lg:h-3 fill-cyan-400 text-cyan-400" />)}
+                    {[1,2,3,4,5].map((s) => <Star key={s} className="w-3 h-3 fill-cyan-400 text-cyan-400" />)}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 relative w-full h-[300px] lg:h-[600px] animate-float z-0">
-            <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-[80px] lg:blur-[140px] opacity-30" />
-            <Image
-              src="/vitalis_hero_illustration_1773171062183.png"
-              alt="Health AI Illustration"
-              fill
-              className="object-contain"
-              priority
-            />
+          {/* ── Right: Live AI Diagnosis Mockup ── */}
+          <div className="flex-1 w-full animate-slide-up delay-300">
+            <div className="relative mx-auto max-w-md">
+
+              {/* Ambient pulse rings */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-96 h-96 rounded-full border border-cyan-400/8 animate-pulse-ring" />
+                <div className="absolute w-72 h-72 rounded-full border border-cyan-400/8 animate-pulse-ring delay-700" />
+              </div>
+
+              {/* Card */}
+              <div className="relative glass rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
+
+                {/* Scan sweep */}
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent animate-scan pointer-events-none z-20" />
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-semibold">Live Diagnosis</p>
+                      <p className="text-white/30 text-[10px] uppercase tracking-widest">Vitalis Engine v4.2</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="text-cyan-400 text-[10px] font-bold uppercase tracking-wider">Processing</span>
+                  </div>
+                </div>
+
+                {/* Input mock */}
+                <div className="px-6 pt-5">
+                  <p className="text-white/30 text-[10px] uppercase tracking-widest mb-2">Patient Input</p>
+                  <div className="bg-white/[0.03] border border-white/5 rounded-2xl px-4 py-3 text-white/70 text-sm font-light leading-relaxed">
+                    "Persistent headache for 3 days, mild fever, and stiff neck..."
+                    <span className="inline-block w-[2px] h-4 bg-cyan-400 ml-1 align-middle animate-blink" />
+                  </div>
+                </div>
+
+                {/* Token stream */}
+                <div className="px-6 pt-4 overflow-hidden">
+                  <p className="text-white/30 text-[10px] uppercase tracking-widest mb-2">Neural Analysis</p>
+                  <div className="overflow-hidden whitespace-nowrap">
+                    <div className="inline-flex gap-2 animate-marquee">
+                      {["Meningism","Photophobia","Nuchal Rigidity","CBC Panel","CSF Analysis","CT Scan","Risk: High","LP Recommended",
+                        "Meningism","Photophobia","Nuchal Rigidity","CBC Panel","CSF Analysis","CT Scan","Risk: High","LP Recommended"].map((t, i) => (
+                        <span key={i} className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 shrink-0">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Severity score */}
+                <div className="px-6 pt-5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Severity Score</span>
+                    <span className="text-cyan-400 text-sm font-bold">82 / 100</span>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-cyan-500 to-teal-400 shadow-[0_0_16px_rgba(6,182,212,0.6)]" />
+                  </div>
+                  <div className="flex justify-between mt-1.5">
+                    <span className="text-white/20 text-[9px]">Low</span>
+                    <span className="text-white/20 text-[9px]">Critical</span>
+                  </div>
+                </div>
+
+                {/* Differentials */}
+                <div className="px-6 pt-4">
+                  <p className="text-white/30 text-[10px] uppercase tracking-widest mb-2">Top Differentials</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[{label:"Bacterial Meningitis",conf:"91%"},{label:"Viral Meningitis",conf:"71%"},{label:"Migraine + Fever",conf:"38%"}].map((d) => (
+                      <div key={d.label} className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/[0.04] border border-white/5">
+                        <span className="text-white/60 text-xs">{d.label}</span>
+                        <span className="text-cyan-400 text-[10px] font-bold">{d.conf}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recommendation */}
+                <div className="px-6 pt-4">
+                  <div className="p-4 bg-cyan-500/5 border border-cyan-400/15 rounded-2xl flex gap-3">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <p className="text-white/55 text-xs leading-relaxed italic">
+                      "Immediate neurological consult and lumbar puncture advised. Do not delay intervention."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer CTA */}
+                <div className="px-6 py-5 mt-4 border-t border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4 text-white/30" />
+                    <span className="text-white/30 text-xs">3 specialists available</span>
+                  </div>
+                  <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-[#0a2a2a] text-xs font-bold hover:scale-105 transition-transform">
+                    Connect Now <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Floating stat badges */}
+              <div className="absolute -left-6 top-[30%] glass border border-white/10 rounded-2xl px-4 py-3 shadow-xl animate-float hidden lg:block">
+                <p className="text-[10px] text-white/30 uppercase tracking-widest">Accuracy</p>
+                <p className="text-xl font-bold text-white">99.2%</p>
+              </div>
+              <div className="absolute -right-6 top-[55%] glass border border-white/10 rounded-2xl px-4 py-3 shadow-xl animate-float-reverse hidden lg:block">
+                <p className="text-[10px] text-white/30 uppercase tracking-widest">Avg. Time</p>
+                <p className="text-xl font-bold text-white">60s</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Floating Trust Bar */}
-        <div className="max-w-7xl mx-auto mt-16 lg:mt-20">
+        {/* Trust Bar */}
+        <div className="max-w-7xl mx-auto mt-16 lg:mt-24 relative z-10">
           <div className="glass rounded-3xl lg:rounded-[3rem] p-6 lg:p-10 grid grid-cols-2 md:grid-cols-4 items-center gap-8 lg:gap-12 border border-white/5 shadow-2xl">
             <Stat item="99.2%" label="Accuracy" />
             <Stat item="HIPAA" label="Compliance" />
@@ -126,7 +237,7 @@ export default function Home() {
       </section>
 
       {/* ── Features Grid ────────────────────────────────────────────── */}
-      <section id="features" className="py-20 lg:py-32 px-4 lg:px-6 relative">
+      <section id="features" className="py-20 lg:py-32 px-6 sm:px-10 lg:px-12 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-4 lg:space-y-6 mb-16 lg:mb-24 animate-fade-in">
             <div className="inline-block px-4 py-1.5 glass rounded-full text-cyan-400 text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] mb-2 lg:mb-4">
@@ -181,7 +292,7 @@ export default function Home() {
       </section>
 
       {/* ── Workflow ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 lg:py-32 px-4 lg:px-6 relative">
+      <section id="how-it-works" className="py-20 lg:py-32 px-6 sm:px-10 lg:px-12 relative">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
             <div className="flex-1 space-y-10 lg:space-y-12">
@@ -256,7 +367,7 @@ export default function Home() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────────────── */}
-      <footer className="py-16 lg:py-24 px-4 lg:px-6 border-t border-white/5">
+      <footer className="py-16 lg:py-24 px-6 sm:px-10 lg:px-12 border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
           <div className="sm:col-span-2 space-y-6 lg:space-y-8 text-center sm:text-left">
             <Link href={ROUTES.HOME} className="flex items-center justify-center sm:justify-start gap-4 group">
