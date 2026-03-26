@@ -30,7 +30,7 @@ export default function NotificationDropdown() {
 
     const fetchNotifications = useCallback(async () => {
         setIsLoading(true);
-        const res = await api.get<Notification[]>("/api/v1/notifications");
+        const res = await api.get<Notification[]>("/notifications");
         if (res.success && res.data) {
             setNotifications(res.data);
             setHasUnread(res.data.some(n => !n.is_read));
@@ -46,7 +46,7 @@ export default function NotificationDropdown() {
     }, [fetchNotifications]);
 
     const markAsRead = async (id: string) => {
-        const res = await api.patch(`/api/v1/notifications/${id}/read`, {});
+        const res = await api.patch(`/notifications/${id}/read`, {});
         if (res.success) {
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             setHasUnread(notifications.some(n => n.id !== id && !n.is_read));

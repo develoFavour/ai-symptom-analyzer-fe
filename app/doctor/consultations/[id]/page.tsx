@@ -63,8 +63,11 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const [isSending, setIsSending] = useState(false);
     const [activeTab, setActiveTab] = useState<"case" | "discussion">("case");
 
-    // WebSocket implementation
-    const socketUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") || "ws://localhost:8080"}/api/v1/consultations/${id}/ws`;
+    // WebSocket implementation - Bypass proxy for WebSockets
+    const wsBase = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") || "ws://localhost:8080/api/v1";
+    // If wsBase already ends with /api/v1 or we're using the proxy (which handles /api/v1), 
+    // we don't need to add it. The safest is to let the env var handle the full base.
+    const socketUrl = `${wsBase}/consultations/${id}/ws`;
     
     const { lastMessage } = useWebSocket(socketUrl, {
         onOpen: () => console.log("WebSocket connected"),
@@ -100,13 +103,13 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     useEffect(() => {
         const loadDetail = async () => {
             setIsLoading(true);
-            const res = await api.get<ConsultationDetail>(`/api/v1/consultations/${id}`);
+            const res = await api.get<ConsultationDetail>(`/consultations/${id}`);
             if (res.success && res.data) {
                 setConsult(res.data);
 
                 // If sharing mode is full, fetch chat history
                 if (res.data.sharing_mode === "full" && res.data.session_id) {
-                    const sessionRes = await api.get<any>(`/api/v1/symptoms/sessions/${res.data.session_id}`);
+                    const sessionRes = await api.get<any>(`/symptoms/sessions/${res.data.session_id}`);
                     if (sessionRes.success && sessionRes.data) {
                         const history = sessionRes.data.chat_history;
                         setChatHistory(typeof history === "string" ? JSON.parse(history) : history);
@@ -121,7 +124,7 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const handleSubmitReply = async () => {
         if (!replyText.trim()) return;
         setIsSubmitting(true);
-        const res = await api.post<any>(`/api/v1/doctor/consultations/${id}/reply`, {
+        const res = await api.post<any>(`/doctor/consultations/${id}/reply`, {
             reply_text: replyText,
             recommendation,
             is_ai_correction: isAICorrection
@@ -137,12 +140,12 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const handleSendMessage = async () => {
         if (!messageInput.trim() || isSending) return;
         setIsSending(true);
-        const res = await api.post<any>(`/api/v1/consultations/${id}/messages`, {
+        const res = await api.post<any>(`/consultations/${id}/messages`, {
             content: messageInput
         });
         if (res.success) {
             setMessageInput("");
-            const updated = await api.get<ConsultationDetail>(`/api/v1/consultations/${id}`);
+            const updated = await api.get<ConsultationDetail>(`/consultations/${id}`);
             if (updated.success) setConsult(updated.data);
         }
         setIsSending(false);
@@ -506,7 +509,7 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
                                 <button
                                     onClick={async () => {
                                         if (confirm("Escalate this case? This will notify administrators that specialist intervention is required.")) {
-                                            const res = await api.post(`/api/v1/doctor/consultations/${id}/reply`, {
+                                            const res = await api.post(`/doctor/consultations/${id}/reply`, {
                                                 reply_text: "CASE ESCALATED: Medical provider has requested specialized intervention for this case.",
                                                 recommendation: "Immediate referral to secondary care team."
                                             });

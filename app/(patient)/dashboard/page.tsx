@@ -50,7 +50,7 @@ export default function PatientDashboard() {
     useEffect(() => {
         async function fetchDashboard() {
             setIsLoading(true);
-            const res = await api.get<DashboardData>("/api/v1/user/dashboard");
+            const res = await api.get<DashboardData>("/user/dashboard");
             if (res.success && res.data) {
                 setData(res.data);
             }

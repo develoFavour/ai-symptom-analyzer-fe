@@ -77,7 +77,7 @@ export default function AdminKnowledgeBase() {
             is_epidemic_alert: activeCategory === "alerts" ? "true" : ""
         });
 
-        const res = await api.get<PaginatedResponse<KnowledgeEntry>>(`/api/v1/admin/knowledge/entries?${params.toString()}`);
+        const res = await api.get<PaginatedResponse<KnowledgeEntry>>(`/admin/knowledge/entries?${params.toString()}`);
         if (res.success && res.data) {
             setEntries(res.data.items);
             setPagination({
@@ -134,8 +134,8 @@ export default function AdminKnowledgeBase() {
         e.preventDefault();
         setIsSubmitting(true);
         const endpoint = editingEntry
-            ? `/api/v1/admin/knowledge/entries/${editingEntry.id}`
-            : "/api/v1/admin/knowledge/entries";
+            ? `/admin/knowledge/entries/${editingEntry.id}`
+            : "/admin/knowledge/entries";
 
         const method = editingEntry ? "put" : "post";
         // @ts-ignore
@@ -152,7 +152,7 @@ export default function AdminKnowledgeBase() {
     };
 
     const handleDelete = async (id: string) => {
-        const res = await api.del(`/api/v1/admin/knowledge/entries/${id}`);
+        const res = await api.del(`/admin/knowledge/entries/${id}`);
         if (res.success) {
             toast.success("Entry removed from registry");
             setConfirmDelete(null);

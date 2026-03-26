@@ -40,7 +40,7 @@ function AdminSetupContent() {
         setIsLoading(true);
         setError(null);
 
-        const res = await api.post("/api/v1/auth/admin/setup", {
+        const res = await api.post("/auth/admin/setup", {
             invite_token: token,
             name,
             username,

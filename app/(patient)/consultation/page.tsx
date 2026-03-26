@@ -61,8 +61,8 @@ export default function ConsultationPage() {
         const fetchData = async () => {
             setIsLoading(true);
             const [doctorsRes, consultsRes] = await Promise.all([
-                api.get<Doctor[]>("/api/v1/consultations/doctors"),
-                api.get<Consultation[]>("/api/v1/consultations")
+                api.get<Doctor[]>("/consultations/doctors"),
+                api.get<Consultation[]>("/consultations")
             ]);
 
             if (doctorsRes.success && doctorsRes.data) setDoctors(doctorsRes.data);
@@ -81,7 +81,7 @@ export default function ConsultationPage() {
         if (!selectedDoctor) return;
         setIsSubmitting(true);
 
-        const res = await api.post<any>("/api/v1/consultations", {
+        const res = await api.post<any>("/consultations", {
             doctor_id: selectedDoctor.id,
             session_id: sessionId || undefined,
             symptoms,
@@ -94,7 +94,7 @@ export default function ConsultationPage() {
         if (res.success) {
             setSuccessMsg(`Your request has been sent to Dr. ${selectedDoctor.name}! They will review it and respond shortly.`);
             // Refresh list
-            const updated = await api.get<Consultation[]>("/api/v1/consultations");
+            const updated = await api.get<Consultation[]>("/consultations");
             if (updated.success) setConsultations(updated.data || []);
             
             setTimeout(() => {

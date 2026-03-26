@@ -34,7 +34,7 @@ export default function SymptomCheckerLandingPage() {
     useEffect(() => {
         const fetchSessions = async () => {
             setIsLoading(true);
-            const res = await api.get<SessionSummary[]>("/api/v1/symptoms/sessions");
+            const res = await api.get<SessionSummary[]>("/symptoms/sessions");
             if (res.success && res.data) {
                 setSessions(res.data);
             } else {
@@ -52,7 +52,7 @@ export default function SymptomCheckerLandingPage() {
 
     const startNewSession = async () => {
         setIsStarting(true);
-        const res = await api.post<{ session_id: string }>("/api/v1/symptoms/sessions");
+        const res = await api.post<{ session_id: string }>("/symptoms/sessions");
         if (res.success && res.data?.session_id) {
             router.push(`/symptom-checker/${res.data.session_id}`);
         } else {

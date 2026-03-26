@@ -53,7 +53,7 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
     useEffect(() => {
         const loadSession = async () => {
             setIsLoadingHistory(true);
-            const res = await api.get<any>(`/api/v1/symptoms/sessions/${chatId}`);
+            const res = await api.get<any>(`/symptoms/sessions/${chatId}`);
             if (res.success && res.data) {
                 const stored = res.data.chat_history;
                 if (stored && stored !== "[]" && stored !== "") {
@@ -110,7 +110,7 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                     content: m.content,
                 }));
 
-            const response = await api.post<any>("/api/v1/symptoms/chat", {
+            const response = await api.post<any>("/symptoms/chat", {
                 session_id: chatId,
                 patient_context: "Age: 30, General Health: Good",
                 chat_history: chatHistory,

@@ -51,7 +51,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         setIsLoading(true);
-        const res = await api.get<AdminStats>("/api/v1/admin/stats");
+        const res = await api.get<AdminStats>("/admin/stats");
         if (res.success && res.data) {
             setStats(res.data);
         }
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     const handleInviteAdmin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsInviting(true);
-        const res = await api.post("/api/v1/admin/invite", { email: inviteEmail });
+        const res = await api.post("/admin/invite", { email: inviteEmail });
         setIsInviting(false);
         
         if (res.success) {

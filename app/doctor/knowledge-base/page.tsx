@@ -55,7 +55,7 @@ export default function DoctorKnowledgeBase() {
             is_epidemic_alert: activeCategory === "alerts" ? "true" : ""
         });
 
-        const res = await api.get<PaginatedResponse<KnowledgeEntry>>(`/api/v1/doctor/knowledge/entries?${params.toString()}`);
+        const res = await api.get<PaginatedResponse<KnowledgeEntry>>(`/doctor/knowledge/entries?${params.toString()}`);
         if (res.success && res.data) {
             setEntries(res.data.items);
             setPagination({

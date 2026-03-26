@@ -60,9 +60,9 @@ export default function UserManagementPage() {
 
     const fetchUsers = async () => {
         setIsLoading(true);
-        let endpoint = "/api/v1/admin/users";
-        if (activeTab === "doctors") endpoint = "/api/v1/admin/doctors";
-        if (activeTab === "admins") endpoint = "/api/v1/admin/admins";
+        let endpoint = "/admin/users";
+        if (activeTab === "doctors") endpoint = "/admin/doctors";
+        if (activeTab === "admins") endpoint = "/admin/admins";
 
         const res = await api.get<DirectoryUser[]>(endpoint);
         if (res.success && res.data) {
@@ -77,7 +77,7 @@ export default function UserManagementPage() {
 
     const handlePatientStatus = async (user: DirectoryUser) => {
         setIsUpdating(user.id);
-        const res = await api.patch(`/api/v1/admin/users/${user.id}/status`, {
+        const res = await api.patch(`/admin/users/${user.id}/status`, {
             is_active: String(!user.is_active)
         });
         setIsUpdating(null);
@@ -91,7 +91,7 @@ export default function UserManagementPage() {
 
     const handleDoctorStatus = async (id: string, newStatus: string) => {
         setIsUpdating(id);
-        const res = await api.patch(`/api/v1/admin/doctors/${id}/status`, { status: newStatus });
+        const res = await api.patch(`/admin/doctors/${id}/status`, { status: newStatus });
         setIsUpdating(null);
         if (res.success) {
             toast.success("Specialist credentials revised");
@@ -109,8 +109,8 @@ export default function UserManagementPage() {
             type,
             onConfirm: async () => {
                 setIsUpdating(id);
-                let endpoint = `/api/v1/admin/users/${id}`;
-                if (type === "admin") endpoint = `/api/v1/admin/admins/${id}`;
+                let endpoint = `/admin/users/${id}`;
+                if (type === "admin") endpoint = `/admin/admins/${id}`;
 
                 const res = await api.del(endpoint);
                 setIsUpdating(null);
@@ -129,7 +129,7 @@ export default function UserManagementPage() {
     const handleInvite = async (e: React.FormEvent, type: "doctor" | "admin") => {
         e.preventDefault();
         setIsInviting(true);
-        const endpoint = type === "doctor" ? "/api/v1/admin/doctors/invite" : "/api/v1/admin/invite";
+        const endpoint = type === "doctor" ? "/admin/doctors/invite" : "/admin/invite";
         const payload = type === "doctor" ? { name: inviteName, email: inviteEmail } : { email: inviteEmail };
 
         const res = await api.post(endpoint, payload);

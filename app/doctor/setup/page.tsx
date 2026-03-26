@@ -24,7 +24,7 @@ export default function DoctorWizardPage() {
         setIsSubmitting(true);
         setError("");
 
-        const res = await api.post<any>("/api/v1/auth/doctor/wizard", {
+        const res = await api.post<any>("/auth/doctor/wizard", {
             specialization,
             credentials,
             bio

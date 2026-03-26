@@ -51,8 +51,9 @@ export default function PatientConsultationDetail({ params }: { params: Promise<
     const [isSending, setIsSending] = useState(false);
     const [activeTab, setActiveTab] = useState<"summary" | "discussion">("summary");
 
-    // WebSocket implementation
-    const socketUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") || "ws://localhost:8080"}/api/v1/consultations/${id}/ws`;
+    // WebSocket implementation - Bypass proxy for WebSockets
+    const wsBase = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") || "ws://localhost:8080/api/v1";
+    const socketUrl = `${wsBase}/consultations/${id}/ws`;
     
     const { lastMessage } = useWebSocket(socketUrl, {
         onOpen: () => console.log("WebSocket connected"),
@@ -84,7 +85,7 @@ export default function PatientConsultationDetail({ params }: { params: Promise<
     useEffect(() => {
         const loadDetail = async () => {
             setIsLoading(true);
-            const res = await api.get<ConsultationDetail>(`/api/v1/consultations/${id}`);
+            const res = await api.get<ConsultationDetail>(`/consultations/${id}`);
             if (res.success && res.data) {
                 setConsult(res.data);
             }
@@ -96,7 +97,7 @@ export default function PatientConsultationDetail({ params }: { params: Promise<
     const handleSendMessage = async () => {
         if (!messageInput.trim() || isSending) return;
         setIsSending(true);
-        const res = await api.post<any>(`/api/v1/consultations/${id}/messages`, {
+        const res = await api.post<any>(`/consultations/${id}/messages`, {
             content: messageInput
         });
         if (res.success) {

@@ -42,7 +42,7 @@ export default function DoctorDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             setIsLoading(true);
-            const res = await api.get<Consultation[]>("/api/v1/doctor/consultations");
+            const res = await api.get<Consultation[]>("/doctor/consultations");
             if (res.success && res.data) {
                 setQueue(res.data);
                 

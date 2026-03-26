@@ -37,7 +37,7 @@ function DoctorSetupContent() {
         setIsSubmitting(true);
         setError("");
 
-        const res = await api.post<any>("/api/v1/auth/doctor/setup", {
+        const res = await api.post<any>("/auth/doctor/setup", {
             invite_token: token,
             name,
             password,
