@@ -68,7 +68,7 @@ export default function SymptomCheckerLandingPage() {
     };
 
     return (
-        <div className="-mx-4 lg:-mx-8 -mt-8 -mb-8 lg:h-[calc(100vh-5rem)] min-h-[calc(100vh-5rem)] py-12 lg:py-0 flex flex-col items-center justify-center bg-[#050505] text-white overflow-hidden relative">
+        <div className="-mx-4 lg:-mx-8 -mt-8 -mb-8 min-h-[calc(100vh-5rem)] py-12 lg:py-20 flex flex-col items-center justify-center bg-[#050505] text-white relative">
 
             {/* Background glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] lg:w-[800px] h-[600px] lg:h-[800px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
