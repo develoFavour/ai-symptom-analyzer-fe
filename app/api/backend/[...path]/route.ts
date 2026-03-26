@@ -2,17 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
-/**
- * Universal Backend Proxy
- *
- * Routes all /api/backend/* requests to the Go backend on Render.
- * Because this runs on Vercel's server (same domain as the frontend),
- * cookies set by the backend are forwarded to the browser on the Vercel
- * domain — which means Next.js middleware CAN read them.
- *
- * This is the standard senior-engineer solution to the Vercel/Render
- * cross-domain cookie problem.
- */
+// Headers that must not be forwarded to/from the backend (hop-by-hop headers)
+const HOP_BY_HOP_REQUEST = new Set([
+    "host",
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailers",
+    "upgrade",
+]);
+
+// Headers that must not be forwarded in the response back to the browser.
+// content-encoding is critical: Node.js fetch auto-decompresses gzip, but if
+// we forward the header the browser tries to decompress again and fails.
+const HOP_BY_HOP_RESPONSE = new Set([
+    "content-encoding",
+    "transfer-encoding",
+    "content-length", // may be wrong after decompression
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailers",
+    "upgrade",
+]);
+
 async function handler(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
     const { path } = await params;
     const pathname = path.join("/");
@@ -20,12 +37,15 @@ async function handler(request: NextRequest, { params }: { params: Promise<{ pat
 
     const backendURL = `${BACKEND_URL}/${pathname}${search}`;
 
-    // Forward all original headers, including the cookie header
-    const headers = new Headers(request.headers);
-    headers.set("x-forwarded-for", request.headers.get("x-forwarded-for") || "");
-    headers.set("x-forwarded-host", request.nextUrl.host);
-    // Remove the host header so it matches the backend's expected host
-    headers.delete("host");
+    // Build forwarded request headers, stripping hop-by-hop headers
+    const forwardHeaders = new Headers();
+    request.headers.forEach((value, key) => {
+        if (!HOP_BY_HOP_REQUEST.has(key.toLowerCase())) {
+            forwardHeaders.set(key, value);
+        }
+    });
+    forwardHeaders.set("x-forwarded-host", request.nextUrl.host);
+    forwardHeaders.set("x-forwarded-for", request.headers.get("x-forwarded-for") || "");
 
     let body: BodyInit | null = null;
     const method = request.method;
@@ -36,25 +56,35 @@ async function handler(request: NextRequest, { params }: { params: Promise<{ pat
     try {
         const backendResponse = await fetch(backendURL, {
             method,
-            headers,
+            headers: forwardHeaders,
             body,
-            // Important: do not follow redirects automatically
             redirect: "manual",
         });
 
-        // Forward all response headers back to the browser
-        const responseHeaders = new Headers(backendResponse.headers);
-
-        // Relay Set-Cookie headers verbatim — this is the key to making
-        // HttpOnly cookies work from the Vercel domain
-        const setCookies = backendResponse.headers.getSetCookie?.() ?? [];
-        if (setCookies.length > 0) {
-            responseHeaders.delete("set-cookie");
-            for (const cookie of setCookies) {
-                responseHeaders.append("set-cookie", cookie);
+        // Build response headers, stripping hop-by-hop headers
+        const responseHeaders = new Headers();
+        backendResponse.headers.forEach((value, key) => {
+            if (!HOP_BY_HOP_RESPONSE.has(key.toLowerCase())) {
+                responseHeaders.set(key, value);
             }
+        });
+
+        // Relay Set-Cookie headers — critical for HttpOnly auth cookies
+        // Use getSetCookie() with a fallback for older Node.js runtimes
+        const rawCookieHeader = backendResponse.headers.get("set-cookie");
+        const setCookies: string[] =
+            typeof backendResponse.headers.getSetCookie === "function"
+                ? backendResponse.headers.getSetCookie()
+                : rawCookieHeader
+                ? rawCookieHeader.split(/,(?=[^ ])/)
+                : [];
+
+        responseHeaders.delete("set-cookie");
+        for (const cookie of setCookies) {
+            responseHeaders.append("set-cookie", cookie);
         }
 
+        // Body is already decompressed by Node.js fetch (since we stripped content-encoding)
         const responseBody = await backendResponse.arrayBuffer();
 
         return new NextResponse(responseBody, {
