@@ -16,11 +16,12 @@ const axiosInstance = axios.create({
     withCredentials: true, // Crucial for HttpOnly cookies
 });
 
-// ── Request Interceptor: No longer need manual token attachment with cookies ──
+// ── Request Interceptor: Cookies flow automatically via the proxy ─────────────
 axiosInstance.interceptors.request.use(
     (config) => config,
     (error) => Promise.reject(error)
 );
+
 
 // ── Response Interceptor: Handle 401 & Automatic Token Refresh ────────────────
 let isRefreshing = false;
