@@ -7,12 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, User, Mail, Lock, UserPlus, Calendar, Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
     Field,
-    FieldLabel,
     FieldError,
 } from "@/components/ui/field";
 import {
@@ -25,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/route.constants";
 import { authService } from "@/services/auth.service";
-import { useAuthStore } from "@/store/auth.store";
 import AuthLayout from "@/components/auth/auth-layout";
 
 const registerSchema = z.object({
@@ -37,14 +35,14 @@ const registerSchema = z.object({
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterFormInput = z.input<typeof registerSchema>;
 
 export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const { setAuth } = useAuthStore();
 
-    const form = useForm<RegisterFormValues>({
-        resolver: zodResolver(registerSchema) as any,
+    const form = useForm<RegisterFormInput, unknown, RegisterFormValues>({
+        resolver: zodResolver(registerSchema),
         defaultValues: {
             name: "",
             email: "",
@@ -57,7 +55,7 @@ export default function RegisterPage() {
     const onSubmit = async (data: RegisterFormValues) => {
         setIsLoading(true);
         try {
-            const response = await authService.register(data as any);
+            const response = await authService.register(data);
 
             if (response.success) {
                 toast.success("Verification email sent! Please check your inbox.");
@@ -65,7 +63,7 @@ export default function RegisterPage() {
             } else {
                 toast.error(response.error || "Failed to create account");
             }
-        } catch (error) {
+        } catch {
             toast.error("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
@@ -78,7 +76,7 @@ export default function RegisterPage() {
             subtitle="Create your account"
         >
             <div className="space-y-8 font-sans">
-                <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <Controller
                         control={form.control}
                         name="name"
@@ -128,7 +126,7 @@ export default function RegisterPage() {
                                             {...field}
                                             id={field.name}
                                             type="number"
-                                            value={field.value || ""}
+                                            value={typeof field.value === "string" || typeof field.value === "number" ? field.value : ""}
                                             aria-invalid={fieldState.invalid}
                                             placeholder="Age"
                                             className="auth-input"
@@ -162,11 +160,11 @@ export default function RegisterPage() {
                                         <SelectContent
                                             alignItemWithTrigger={false}
                                             sideOffset={8}
-                                            className="glass border-white/10 rounded-[2rem] shadow-2xl text-white p-2 min-w-[200px]"
+                                            className="min-w-[200px] rounded-[2rem] border border-[#d7ebe6] bg-white p-2 text-[#163332] shadow-[0_18px_40px_rgba(19,51,50,0.08)]"
                                         >
-                                            <SelectItem value="male" className="rounded-2xl h-12 mb-1 focus:bg-white/10 hover:bg-white/10 cursor-pointer transition-colors pl-4 pr-10">Male</SelectItem>
-                                            <SelectItem value="female" className="rounded-2xl h-12 mb-1 focus:bg-white/10 hover:bg-white/10 cursor-pointer transition-colors pl-4 pr-10">Female</SelectItem>
-                                            <SelectItem value="other" className="rounded-2xl h-12 focus:bg-white/10 hover:bg-white/10 cursor-pointer transition-colors pl-4 pr-10">Other</SelectItem>
+                                            <SelectItem value="male" className="mb-1 h-12 cursor-pointer rounded-2xl pl-4 pr-10 transition-colors hover:bg-[#eef8f5] focus:bg-[#eef8f5]">Male</SelectItem>
+                                            <SelectItem value="female" className="mb-1 h-12 cursor-pointer rounded-2xl pl-4 pr-10 transition-colors hover:bg-[#eef8f5] focus:bg-[#eef8f5]">Female</SelectItem>
+                                            <SelectItem value="other" className="h-12 cursor-pointer rounded-2xl pl-4 pr-10 transition-colors hover:bg-[#eef8f5] focus:bg-[#eef8f5]">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -197,7 +195,7 @@ export default function RegisterPage() {
 
                     <Button
                         type="submit"
-                        className="w-full h-14 rounded-full bg-[#0a2a2a] text-white font-bold text-lg hover:bg-[#0d3d3d] transition-all active:scale-[0.98] shadow-2xl border border-white/5 mt-4"
+                        className="mt-4 h-14 w-full rounded-full border border-[#8ec9be] bg-[#1d5a56] text-lg font-bold text-white shadow-lg shadow-[#1d5a56]/15 transition-all hover:bg-[#236762] active:scale-[0.98]"
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -211,11 +209,11 @@ export default function RegisterPage() {
                     </Button>
                 </form>
 
-                <p className="text-center text-white/40 text-sm font-medium">
+                <p className="text-center text-sm font-medium text-[#688782]">
                     Already a member?{" "}
                     <Link
                         href={ROUTES.LOGIN}
-                        className="text-white/80 font-bold hover:text-white transition-colors"
+                        className="font-bold text-[#1d5a56] transition-colors hover:text-[#163332]"
                     >
                         Login
                     </Link>

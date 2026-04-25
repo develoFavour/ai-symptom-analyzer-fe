@@ -1,11 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    UserPlus, Mail, Shield, ShieldAlert, CheckCircle,
-    Search, Loader2, X, Ban, Trash2,
-    User, Stethoscope, Clock, Calendar, ShieldCheck,
-    AtSign, CheckCircle2, MoreVertical
+    Mail,
+    Shield,
+    ShieldAlert,
+    CheckCircle,
+    Search,
+    Loader2,
+    X,
+    Ban,
+    Trash2,
+    User,
+    Stethoscope,
+    Clock,
+    Calendar,
+    ShieldCheck,
+    AtSign,
+    CheckCircle2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -15,6 +27,7 @@ import { toast } from "sonner";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 
 type TabType = "patients" | "doctors" | "admins";
+type ConfirmType = "user" | "doctor" | "admin";
 
 interface DirectoryUser {
     id: string;
@@ -27,6 +40,57 @@ interface DirectoryUser {
     created_at: string;
 }
 
+interface ConfirmState {
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    type: ConfirmType;
+}
+
+interface TabButtonProps {
+    active: boolean;
+    onClick: () => void;
+    label: string;
+    count?: number;
+}
+
+interface AvatarProps {
+    type: TabType;
+    active: boolean;
+}
+
+interface BadgeProps {
+    status: string;
+}
+
+interface ActionButtonProps {
+    icon: React.ReactNode;
+    label: string;
+    variant: "danger" | "success";
+    onClick: () => void;
+    disabled?: boolean;
+    loading?: boolean;
+}
+
+interface IconButtonProps {
+    icon: React.ReactNode;
+    onClick: () => void;
+}
+
+interface InviteModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (e: React.FormEvent) => void;
+    title: string;
+    isInviting: boolean;
+    showName?: boolean;
+    name?: string;
+    setName?: React.Dispatch<React.SetStateAction<string>>;
+    email: string;
+    setEmail: React.Dispatch<React.SetStateAction<string>>;
+}
+
 export default function UserManagementPage() {
     const { user: currentUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<TabType>("patients");
@@ -34,31 +98,20 @@ export default function UserManagementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
-
-    // Modals
     const [isInviteDoctorOpen, setIsInviteDoctorOpen] = useState(false);
     const [isInviteAdminOpen, setIsInviteAdminOpen] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
-
-    const [confirmState, setConfirmState] = useState<{
-        isOpen: boolean;
-        title: string;
-        description: string;
-        onConfirm: () => void;
-        type: "user" | "doctor" | "admin";
-    }>({
+    const [inviteName, setInviteName] = useState("");
+    const [inviteEmail, setInviteEmail] = useState("");
+    const [confirmState, setConfirmState] = useState<ConfirmState>({
         isOpen: false,
         title: "",
         description: "",
-        onConfirm: () => { },
-        type: "user"
+        onConfirm: () => {},
+        type: "user",
     });
 
-    // Invite Form States
-    const [inviteName, setInviteName] = useState("");
-    const [inviteEmail, setInviteEmail] = useState("");
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setIsLoading(true);
         let endpoint = "/admin/users";
         if (activeTab === "doctors") endpoint = "/admin/doctors";
@@ -69,21 +122,25 @@ export default function UserManagementPage() {
             setUsers(res.data);
         }
         setIsLoading(false);
-    };
+    }, [activeTab]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [activeTab]);
+        const timeoutId = setTimeout(() => {
+            void fetchUsers();
+        }, 0);
+
+        return () => clearTimeout(timeoutId);
+    }, [fetchUsers]);
 
     const handlePatientStatus = async (user: DirectoryUser) => {
         setIsUpdating(user.id);
         const res = await api.patch(`/admin/users/${user.id}/status`, {
-            is_active: String(!user.is_active)
+            is_active: String(!user.is_active),
         });
         setIsUpdating(null);
         if (res.success) {
             toast.success("Identity status updated");
-            fetchUsers();
+            void fetchUsers();
         } else {
             toast.error(res.error || "Update failed");
         }
@@ -95,13 +152,13 @@ export default function UserManagementPage() {
         setIsUpdating(null);
         if (res.success) {
             toast.success("Specialist credentials revised");
-            fetchUsers();
+            void fetchUsers();
         } else {
             toast.error(res.error || "Update failed");
         }
     };
 
-    const handleDelete = (id: string, type: "user" | "doctor" | "admin") => {
+    const handleDelete = (id: string, type: ConfirmType) => {
         setConfirmState({
             isOpen: true,
             title: `Delete ${type} Entry?`,
@@ -114,15 +171,15 @@ export default function UserManagementPage() {
 
                 const res = await api.del(endpoint);
                 setIsUpdating(null);
-                setConfirmState(prev => ({ ...prev, isOpen: false }));
+                setConfirmState((prev) => ({ ...prev, isOpen: false }));
 
                 if (res.success) {
                     toast.success(`${type} deleted from registry`);
-                    fetchUsers();
+                    void fetchUsers();
                 } else {
                     toast.error(res.error || "Deletion failed");
                 }
-            }
+            },
         });
     };
 
@@ -140,32 +197,32 @@ export default function UserManagementPage() {
             setIsInviteAdminOpen(false);
             setInviteName("");
             setInviteEmail("");
-            fetchUsers();
+            void fetchUsers();
         } else {
             toast.error(res.error || "Dispatch failed");
         }
     };
 
-    const filteredUsers = users.filter(u =>
-        (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.username || "").toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredUsers = users.filter(
+        (u) =>
+            (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.username || "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-10 pb-20">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 lg:px-0">
+        <div className="mx-auto max-w-7xl space-y-10 pb-20 text-[#163332]">
+            <div className="flex flex-col justify-between gap-6 px-4 md:flex-row md:items-end lg:px-0">
                 <div>
-                    <h1 className="text-4xl font-extrabold text-white tracking-tight italic">User Management</h1>
-                    <p className="text-white/40 mt-1 text-lg font-medium">Platform-wide governance and identity control.</p>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-[#163332]">User Management</h1>
+                    <p className="mt-1 text-lg font-medium text-[#698782]">Platform-wide governance and identity control.</p>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {activeTab === "doctors" && (
                         <button
                             onClick={() => setIsInviteDoctorOpen(true)}
-                            className="bg-white text-black px-8 py-3.5 rounded-2xl font-black flex items-center gap-2 hover:bg-white/90 transition-all shadow-xl shadow-white/5 uppercase text-xs"
+                            className="flex items-center gap-2 rounded-2xl bg-[#2c756e] px-8 py-3.5 text-xs font-black uppercase text-white shadow-[0_14px_30px_rgba(44,117,110,0.18)] transition-all hover:bg-[#245f5a]"
                         >
                             <Stethoscope className="h-4 w-4" />
                             Invite Specialist
@@ -174,64 +231,90 @@ export default function UserManagementPage() {
                     {activeTab === "admins" && (
                         <button
                             onClick={() => setIsInviteAdminOpen(true)}
-                            className="bg-[#1e1e1e] border border-white/10 text-white px-8 py-3.5 rounded-2xl font-black flex items-center gap-2 hover:bg-white/10 transition-all shadow-xl shadow-white/5 uppercase text-xs"
+                            className="flex items-center gap-2 rounded-2xl border border-[#d7ebe6] bg-white px-8 py-3.5 text-xs font-black uppercase text-[#163332] shadow-[0_10px_24px_rgba(19,51,50,0.05)] transition-all hover:bg-[#f7fbfa]"
                         >
-                            <Shield className="h-4 w-4 text-blue-400" />
+                            <Shield className="h-4 w-4 text-sky-600" />
                             Invite Administrator
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* Tabs & Search */}
             <div className="space-y-6 px-4 lg:px-0">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-2">
+                <div className="flex flex-col justify-between gap-6 border-b border-[#e7f1ef] pb-4 md:flex-row md:items-center">
                     <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
-                        <TabButton active={activeTab === "patients"} onClick={() => setActiveTab("patients")} label="Patients" count={activeTab === "patients" ? users.length : undefined} />
-                        <TabButton active={activeTab === "doctors"} onClick={() => setActiveTab("doctors")} label="Medical Staff" count={activeTab === "doctors" ? users.length : undefined} />
-                        <TabButton active={activeTab === "admins"} onClick={() => setActiveTab("admins")} label="Admins" count={activeTab === "admins" ? users.length : undefined} />
+                        <TabButton
+                            active={activeTab === "patients"}
+                            onClick={() => setActiveTab("patients")}
+                            label="Patients"
+                            count={activeTab === "patients" ? users.length : undefined}
+                        />
+                        <TabButton
+                            active={activeTab === "doctors"}
+                            onClick={() => setActiveTab("doctors")}
+                            label="Medical Staff"
+                            count={activeTab === "doctors" ? users.length : undefined}
+                        />
+                        <TabButton
+                            active={activeTab === "admins"}
+                            onClick={() => setActiveTab("admins")}
+                            label="Admins"
+                            count={activeTab === "admins" ? users.length : undefined}
+                        />
                     </div>
 
-                    <div className="relative group w-full md:w-80">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-white transition-colors" />
+                    <div className="group relative w-full md:w-80">
+                        <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9bb3ae] transition-colors group-focus-within:text-[#2c756e]" />
                         <input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search directory..."
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3 text-white text-sm focus:outline-none focus:border-white/30 transition-all"
+                            className="w-full rounded-2xl border border-[#d7ebe6] bg-white py-3 pl-12 pr-6 text-sm text-[#163332] shadow-[0_10px_24px_rgba(19,51,50,0.04)] transition-all placeholder:text-[#9bb3ae] focus:border-[#9dcfc6] focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Content List */}
             <div className="grid gap-4 px-4 lg:px-0">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-32 gap-4 text-white/20">
-                        <Loader2 className="h-10 w-10 animate-spin" />
+                    <div className="flex flex-col items-center justify-center gap-4 py-32 text-[#8aa39e]">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#2c756e]" />
                         <p className="text-xs font-bold uppercase tracking-widest">Indexing {activeTab}...</p>
                     </div>
                 ) : filteredUsers.length === 0 ? (
-                    <div className="bg-white/5 border border-white/5 rounded-[3rem] p-24 text-center border-dashed">
-                        <User className="h-16 w-16 mx-auto mb-6 text-white/5" />
-                        <h3 className="text-xl font-bold text-white/40 italic">Registry entry not found</h3>
-                        <p className="text-white/20 text-sm mt-1">No matches in current directory view.</p>
+                    <div className="rounded-[3rem] border border-dashed border-[#d7ebe6] bg-white p-24 text-center shadow-[0_18px_40px_rgba(19,51,50,0.04)]">
+                        <User className="mx-auto mb-6 h-16 w-16 text-[#c4d7d3]" />
+                        <h3 className="text-xl font-bold text-[#4f6d68]">Registry entry not found</h3>
+                        <p className="mt-1 text-sm text-[#8aa39e]">No matches in current directory view.</p>
                     </div>
                 ) : (
-                    filteredUsers.map(u => (
-                        <div key={u.id} className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:bg-white/[0.03] transition-all group">
+                    filteredUsers.map((u) => (
+                        <div
+                            key={u.id}
+                            className="group flex flex-col justify-between gap-8 rounded-[2.5rem] border border-[#dcece8] bg-white p-8 shadow-[0_14px_32px_rgba(19,51,50,0.05)] transition-all hover:border-[#bfded7] hover:bg-[#fcfffe] md:flex-row md:items-center"
+                        >
                             <div className="flex items-center gap-6">
                                 <Avatar type={activeTab} active={u.is_active !== false && u.status !== "suspended"} />
                                 <div className="space-y-1.5">
                                     <div className="flex items-center gap-3">
-                                        <h3 className="font-bold text-xl text-white tracking-tight">{u.name || "Pending Account"}</h3>
+                                        <h3 className="text-xl font-bold tracking-tight text-[#163332]">{u.name || "Pending Account"}</h3>
                                         <Badge status={activeTab === "patients" ? (u.is_active ? "active" : "suspended") : (u.status || "active")} />
                                     </div>
                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                                        <span className="text-sm text-white/40 flex items-center gap-2"><Mail className="h-4 w-4" /> {u.email}</span>
-                                        {u.specialization && <span className="text-sm text-white/40 flex items-center gap-2"><Stethoscope className="h-4 w-4" /> {u.specialization}</span>}
-                                        {u.username && <span className="text-sm text-white/40 flex items-center gap-2"><AtSign className="h-4 w-4" /> {u.username}</span>}
-                                        <span className="text-[10px] text-white/20 font-black uppercase tracking-widest flex items-center gap-2">
+                                        <span className="flex items-center gap-2 text-sm text-[#698782]">
+                                            <Mail className="h-4 w-4" /> {u.email}
+                                        </span>
+                                        {u.specialization && (
+                                            <span className="flex items-center gap-2 text-sm text-[#698782]">
+                                                <Stethoscope className="h-4 w-4" /> {u.specialization}
+                                            </span>
+                                        )}
+                                        {u.username && (
+                                            <span className="flex items-center gap-2 text-sm text-[#698782]">
+                                                <AtSign className="h-4 w-4" /> {u.username}
+                                            </span>
+                                        )}
+                                        <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#8aa39e]">
                                             <Calendar className="h-3 w-3" /> Registered {format(new Date(u.created_at), "MMM yyyy")}
                                         </span>
                                     </div>
@@ -276,7 +359,6 @@ export default function UserManagementPage() {
                 )}
             </div>
 
-            {/* Modals */}
             <InviteModal
                 isOpen={isInviteDoctorOpen}
                 onClose={() => setIsInviteDoctorOpen(false)}
@@ -302,7 +384,7 @@ export default function UserManagementPage() {
 
             <ConfirmModal
                 isOpen={confirmState.isOpen}
-                onClose={() => setConfirmState(prev => ({ ...prev, isOpen: false }))}
+                onClose={() => setConfirmState((prev) => ({ ...prev, isOpen: false }))}
                 onConfirm={confirmState.onConfirm}
                 title={confirmState.title}
                 description={confirmState.description}
@@ -313,65 +395,67 @@ export default function UserManagementPage() {
     );
 }
 
-// ── Shared UI Components ──────────────────────────────────────────────────────
-
-function TabButton({ active, onClick, label, count }: any) {
+function TabButton({ active, onClick, label, count }: TabButtonProps) {
     return (
         <button
             onClick={onClick}
             className={cn(
-                "pb-4 px-2 text-sm font-black uppercase tracking-[0.2em] relative transition-all whitespace-nowrap",
-                active ? "text-white" : "text-white/20 hover:text-white/40"
+                "relative whitespace-nowrap px-2 pb-4 text-sm font-black uppercase tracking-[0.2em] transition-all",
+                active ? "text-[#163332]" : "text-[#8aa39e] hover:text-[#4f6d68]",
             )}
         >
             <span className="flex items-center gap-3">
                 {label}
                 {count !== undefined && (
-                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">{count}</span>
+                    <span className="rounded-lg border border-[#d7ebe6] bg-[#f4fbf9] px-2 py-0.5 text-[10px] text-[#698782]">{count}</span>
                 )}
             </span>
-            {active && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-full animate-in slide-in-from-bottom-2 duration-300" />
-            )}
+            {active && <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-[#2c756e] animate-in slide-in-from-bottom-2 duration-300" />}
         </button>
     );
 }
 
-function Avatar({ type, active }: any) {
+function Avatar({ type, active }: AvatarProps) {
     const Icon = type === "doctors" ? Stethoscope : type === "admins" ? Shield : User;
     return (
-        <div className={cn(
-            "h-20 w-20 rounded-[2rem] flex items-center justify-center border transition-all duration-500",
-            active ? "bg-white/5 border-white/10 text-white/20 group-hover:bg-white group-hover:text-black group-hover:scale-105" : "bg-red-500/10 border-red-500/20 text-red-500 shadow-2xl shadow-red-500/5 items-center grayscale"
-        )}>
+        <div
+            className={cn(
+                "flex h-20 w-20 items-center justify-center rounded-[2rem] border transition-all duration-500",
+                active
+                    ? "border-[#d7ebe6] bg-[#f4fbf9] text-[#8aa39e] group-hover:border-[#c6e4dd] group-hover:bg-[#eef8f5] group-hover:text-[#2c756e]"
+                    : "border-red-200 bg-red-50 text-red-500 grayscale",
+            )}
+        >
             <Icon className="h-10 w-10" />
         </div>
     );
 }
 
-function Badge({ status }: any) {
-    const config: any = {
-        active: { label: "Active", bg: "bg-emerald-500/10", text: "text-emerald-500", icon: ShieldCheck },
-        pending: { label: "Pending", bg: "bg-amber-500/10", text: "text-amber-500", icon: Clock },
-        suspended: { label: "Suspended", bg: "bg-red-500/10", text: "text-red-500", icon: ShieldAlert },
-    };
-    const c = config[status] || config.pending;
+function Badge({ status }: BadgeProps) {
+    const config = {
+        active: { label: "Active", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: ShieldCheck },
+        pending: { label: "Pending", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: Clock },
+        suspended: { label: "Suspended", bg: "bg-red-50", text: "text-red-600", border: "border-red-200", icon: ShieldAlert },
+    } as const;
+    const c = config[status as keyof typeof config] || config.pending;
     return (
-        <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-white/5", c.bg, c.text)}>
+        <span className={cn("flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest", c.bg, c.text, c.border)}>
             <c.icon className="h-3 w-3" />
             {c.label}
         </span>
     );
 }
 
-function ActionButton({ icon, label, variant, onClick, disabled, loading }: any) {
+function ActionButton({ icon, label, variant, onClick, disabled, loading }: ActionButtonProps) {
     return (
         <button
             onClick={onClick}
             disabled={disabled || loading}
             className={cn(
-                "h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 disabled:opacity-30",
-                variant === "danger" ? "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white" : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black"
+                "flex h-12 items-center gap-3 rounded-2xl border px-6 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30",
+                variant === "danger"
+                    ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white",
             )}
         >
             {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : icon}
@@ -380,49 +464,81 @@ function ActionButton({ icon, label, variant, onClick, disabled, loading }: any)
     );
 }
 
-function IconButton({ icon, onClick }: any) {
+function IconButton({ icon, onClick }: IconButtonProps) {
     return (
         <button
             onClick={onClick}
-            className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 text-white/20 flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 group"
+            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7ebe6] bg-white text-[#8aa39e] transition-all active:scale-95 hover:border-red-500 hover:bg-red-500 hover:text-white"
         >
-            <div className="group-hover:scale-110 transition-transform">{icon}</div>
+            <div className="transition-transform group-hover:scale-110">{icon}</div>
         </button>
     );
 }
 
-function InviteModal({ isOpen, onClose, onSubmit, title, isInviting, showName, name, setName, email, setEmail }: any) {
+function InviteModal({
+    isOpen,
+    onClose,
+    onSubmit,
+    title,
+    isInviting,
+    showName,
+    name,
+    setName,
+    email,
+    setEmail,
+}: InviteModalProps) {
     if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-            <form onSubmit={onSubmit} className="bg-[#050505] border border-white/10 rounded-[4rem] p-12 w-full max-w-xl shadow-2xl space-y-12 relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 h-64 w-64 bg-white/5 rounded-full blur-3xl" />
 
-                <div className="flex items-center justify-between relative z-10">
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(17,33,32,0.35)] p-6 backdrop-blur-sm">
+            <form
+                onSubmit={onSubmit}
+                className="relative w-full max-w-xl space-y-12 overflow-hidden rounded-[3rem] border border-[#dcece8] bg-white p-12 shadow-[0_24px_60px_rgba(19,51,50,0.18)]"
+            >
+                <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-[#eef8f5] blur-3xl" />
+
+                <div className="relative z-10 flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{title}</h2>
-                        <p className="text-white/40 text-sm font-medium mt-1 tracking-tight">Expand the network infrastructure.</p>
+                        <h2 className="text-3xl font-black tracking-tight text-[#163332]">{title}</h2>
+                        <p className="mt-1 text-sm font-medium tracking-tight text-[#698782]">Expand the network infrastructure.</p>
                     </div>
-                    <button type="button" onClick={onClose} className="h-12 w-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/20 transition-all">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f4fbf9] text-[#698782] transition-all hover:bg-[#e9f5f2] hover:text-[#163332]"
+                    >
                         <X className="h-6 w-6" />
                     </button>
                 </div>
 
-                <div className="space-y-6 relative z-10">
-                    {showName && (
+                <div className="relative z-10 space-y-6">
+                    {showName && setName && (
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-2">Display Identity</label>
-                            <div className="relative group">
-                                <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-white transition-colors" />
-                                <input required value={name} onChange={e => setName(e.target.value)} placeholder="Dr. Jane Smith" className="w-full bg-white/5 border border-white/10 rounded-3xl pl-16 pr-6 py-6 text-white text-md focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all font-bold" />
+                            <label className="ml-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#8aa39e]">Display Identity</label>
+                            <div className="group relative">
+                                <User className="absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9bb3ae] transition-colors group-focus-within:text-[#2c756e]" />
+                                <input
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Dr. Jane Smith"
+                                    className="w-full rounded-3xl border border-[#d7ebe6] bg-[#f9fcfb] py-6 pl-16 pr-6 text-md font-bold text-[#163332] transition-all placeholder:text-[#b7cbc7] focus:border-[#9dcfc6] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
+                                />
                             </div>
                         </div>
                     )}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-2">Dispatch Endpoint (Email)</label>
-                        <div className="relative group">
-                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-white transition-colors" />
-                            <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="alias@vitalis.ai" className="w-full bg-white/5 border border-white/10 rounded-3xl pl-16 pr-6 py-6 text-white text-md focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all font-bold" />
+                        <label className="ml-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#8aa39e]">Dispatch Endpoint (Email)</label>
+                        <div className="group relative">
+                            <Mail className="absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9bb3ae] transition-colors group-focus-within:text-[#2c756e]" />
+                            <input
+                                required
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="alias@vitalis.ai"
+                                className="w-full rounded-3xl border border-[#d7ebe6] bg-[#f9fcfb] py-6 pl-16 pr-6 text-md font-bold text-[#163332] transition-all placeholder:text-[#b7cbc7] focus:border-[#9dcfc6] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
+                            />
                         </div>
                     </div>
                 </div>
@@ -430,7 +546,7 @@ function InviteModal({ isOpen, onClose, onSubmit, title, isInviting, showName, n
                 <button
                     type="submit"
                     disabled={isInviting}
-                    className="w-full h-20 bg-white text-black font-black text-lg rounded-[2.5rem] hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-white/5 uppercase tracking-tighter italic"
+                    className="flex h-20 w-full items-center justify-center gap-4 rounded-[2.5rem] bg-[#2c756e] text-lg font-black text-white shadow-[0_18px_36px_rgba(44,117,110,0.18)] transition-all active:scale-95 hover:bg-[#245f5a] disabled:opacity-50"
                 >
                     {isInviting ? <Loader2 className="h-8 w-8 animate-spin" /> : <><CheckCircle2 className="h-6 w-6" /> Send Invitation</>}
                 </button>

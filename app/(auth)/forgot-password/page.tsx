@@ -6,12 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, Mail, ArrowLeft, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
     Field,
-    FieldLabel,
     FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -47,7 +46,7 @@ export default function ForgotPasswordPage() {
             } else {
                 toast.error(response.error || "Failed to send reset link");
             }
-        } catch (error) {
+        } catch {
             toast.error("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
@@ -62,13 +61,13 @@ export default function ForgotPasswordPage() {
             >
                 <div className="text-center space-y-8 py-4">
                     <div className="flex justify-center">
-                        <div className="w-24 h-24 glass rounded-3xl flex items-center justify-center animate-pulse">
-                            <CheckCircle2 className="w-12 h-12 text-white" />
+                        <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-[#d7ebe6] bg-[#f1fbf8] animate-pulse">
+                            <CheckCircle2 className="h-12 w-12 text-[#1d5a56]" />
                         </div>
                     </div>
 
                     <div className="space-y-3">
-                        <p className="text-white/60 text-lg font-light leading-relaxed">
+                        <p className="text-lg font-light leading-relaxed text-[#5f7e79]">
                             We&apos;ve sent a reset link to your email.
                             It will expire in 60 minutes.
                         </p>
@@ -77,7 +76,7 @@ export default function ForgotPasswordPage() {
                     <div className="space-y-4">
                         <Button
                             variant="outline"
-                            className="w-full h-14 rounded-full border border-white/10 bg-white/5 text-white font-bold hover:bg-white/10 transition-all"
+                            className="h-14 w-full rounded-full border border-[#d7ebe6] bg-[#f6fbfa] font-bold text-[#163332] transition-all hover:bg-[#eef8f5]"
                             onClick={() => setIsSubmitted(false)}
                         >
                             Resend Link
@@ -85,7 +84,7 @@ export default function ForgotPasswordPage() {
 
                         <Link
                             href={ROUTES.LOGIN}
-                            className="flex items-center justify-center gap-2 text-white/40 font-bold hover:text-white transition-colors text-sm"
+                            className="flex items-center justify-center gap-2 text-sm font-bold text-[#688782] transition-colors hover:text-[#163332]"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Back to Login
@@ -124,7 +123,7 @@ export default function ForgotPasswordPage() {
 
                     <Button
                         type="submit"
-                        className="w-full h-14 rounded-full bg-[#0a2a2a] text-white font-bold text-lg hover:bg-[#0d3d3d] transition-all active:scale-[0.98] shadow-2xl border border-white/5"
+                        className="h-14 w-full rounded-full border border-[#8ec9be] bg-[#1d5a56] text-lg font-bold text-white shadow-lg shadow-[#1d5a56]/15 transition-all hover:bg-[#236762] active:scale-[0.98]"
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -140,7 +139,7 @@ export default function ForgotPasswordPage() {
 
                 <Link
                     href={ROUTES.LOGIN}
-                    className="flex items-center justify-center gap-2 text-white/40 font-bold hover:text-white transition-colors text-sm"
+                    className="flex items-center justify-center gap-2 text-sm font-bold text-[#688782] transition-colors hover:text-[#163332]"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Secure Sign In

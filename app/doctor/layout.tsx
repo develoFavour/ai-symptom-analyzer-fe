@@ -42,23 +42,23 @@ export default function DoctorLayout({
 
     if (!isMounted || !isAuthenticated || user?.role !== "doctor") {
         return (
-            <div className="h-screen w-full bg-[#050505] flex items-center justify-center">
-                <div className="h-10 w-10 border-4 border-[#0a2a2a] border-t-white rounded-full animate-spin" />
+            <div className="flex h-screen w-full items-center justify-center bg-[#f7fbfa]">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#d2e8e3] border-t-[#1d5a56]" />
             </div>
         );
     }
 
     // If it's the setup page, we don't show the sidebar/header
     if (pathname === "/doctor/setup") {
-        return <div className="min-h-screen bg-[#050505] text-white">{children}</div>;
+        return <div className="min-h-screen bg-[#f7fbfa] text-[#163332]">{children}</div>;
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white">
+        <div className="min-h-screen bg-[#f7fbfa] text-[#163332]">
             <AppSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="lg:pl-72 flex flex-col min-h-screen">
                 <AppHeader onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className="flex-1 p-4 lg:p-8">
+                <main className="flex-1 bg-[#f7fbfa] p-4 lg:p-8">
                     {children}
                 </main>
             </div>

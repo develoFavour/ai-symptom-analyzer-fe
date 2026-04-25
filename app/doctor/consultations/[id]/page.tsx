@@ -2,17 +2,29 @@
 
 import { useEffect, useState, use } from "react";
 import {
-    ChevronLeft, Loader2, User, Clock, AlertCircle,
-    MessageSquare, CheckCircle, Shield, FileText, Send,
-    Info, Bot, Stethoscope, AlertTriangle, ArrowRight,
-    Activity, MessageCircle
+    ChevronLeft,
+    Loader2,
+    User,
+    Clock,
+    AlertCircle,
+    MessageSquare,
+    CheckCircle,
+    Shield,
+    FileText,
+    Send,
+    Info,
+    Bot,
+    Stethoscope,
+    AlertTriangle,
+    ArrowRight,
+    Activity,
+    MessageCircle,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import useWebSocket from "react-use-websocket";
-import Link from "next/link";
 
 interface ConsultationDetail {
     id: string;
@@ -63,39 +75,35 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const [isSending, setIsSending] = useState(false);
     const [activeTab, setActiveTab] = useState<"case" | "discussion">("case");
 
-    // WebSocket implementation - Bypass proxy for WebSockets
-    const wsBase = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") || "ws://localhost:8080/api/v1";
-    // If wsBase already ends with /api/v1 or we're using the proxy (which handles /api/v1), 
-    // we don't need to add it. The safest is to let the env var handle the full base.
+    const wsBase =
+        process.env.NEXT_PUBLIC_WS_URL ||
+        process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
+        "ws://localhost:8080/api/v1";
     const socketUrl = `${wsBase}/consultations/${id}/ws`;
-    
-    const { lastMessage } = useWebSocket(socketUrl, {
-        onOpen: () => console.log("WebSocket connected"),
-        shouldReconnect: (closeEvent) => true,
-    });
 
-    useEffect(() => {
-        if (lastMessage !== null) {
+    useWebSocket(socketUrl, {
+        onOpen: () => console.log("WebSocket connected"),
+        onMessage: (message) => {
             try {
-                const event = JSON.parse(lastMessage.data);
+                const event = JSON.parse(message.data);
                 if (event.type === "new_message" && event.data) {
-                    setConsult(prev => {
+                    setConsult((prev) => {
                         if (!prev) return prev;
-                        const exists = prev.messages?.some(m => m.id === event.data.id);
+                        const exists = prev.messages?.some((m) => m.id === event.data.id);
                         if (exists) return prev;
                         return {
                             ...prev,
-                            messages: [...(prev.messages || []), event.data]
+                            messages: [...(prev.messages || []), event.data],
                         };
                     });
                 }
             } catch (e) {
                 console.error("Error parsing socket message", e);
             }
-        }
-    }, [lastMessage]);
+        },
+        shouldReconnect: () => true,
+    });
 
-    // Reply form
     const [replyText, setReplyText] = useState("");
     const [recommendation, setRecommendation] = useState("");
     const [isAICorrection, setIsAICorrection] = useState(false);
@@ -107,9 +115,10 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
             if (res.success && res.data) {
                 setConsult(res.data);
 
-                // If sharing mode is full, fetch chat history
                 if (res.data.sharing_mode === "full" && res.data.session_id) {
-                    const sessionRes = await api.get<any>(`/symptoms/sessions/${res.data.session_id}`);
+                    const sessionRes = await api.get<{ chat_history: ChatMessage[] | string }>(
+                        `/symptoms/sessions/${res.data.session_id}`,
+                    );
                     if (sessionRes.success && sessionRes.data) {
                         const history = sessionRes.data.chat_history;
                         setChatHistory(typeof history === "string" ? JSON.parse(history) : history);
@@ -124,10 +133,10 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const handleSubmitReply = async () => {
         if (!replyText.trim()) return;
         setIsSubmitting(true);
-        const res = await api.post<any>(`/doctor/consultations/${id}/reply`, {
+        const res = await api.post(`/doctor/consultations/${id}/reply`, {
             reply_text: replyText,
             recommendation,
-            is_ai_correction: isAICorrection
+            is_ai_correction: isAICorrection,
         });
         setIsSubmitting(false);
         if (res.success) {
@@ -140,8 +149,8 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
     const handleSendMessage = async () => {
         if (!messageInput.trim() || isSending) return;
         setIsSending(true);
-        const res = await api.post<any>(`/consultations/${id}/messages`, {
-            content: messageInput
+        const res = await api.post(`/consultations/${id}/messages`, {
+            content: messageInput,
         });
         if (res.success) {
             setMessageInput("");
@@ -153,8 +162,8 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-40 gap-4 text-white/30">
-                <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
+            <div className="flex flex-col items-center justify-center gap-4 py-40 text-[#8aa39e]">
+                <Loader2 className="h-10 w-10 animate-spin text-[#2c756e]" />
                 <p>Establishing secure connection to patient file...</p>
             </div>
         );
@@ -162,50 +171,52 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
 
     if (!consult) {
         return (
-            <div className="text-center py-40">
-                <AlertCircle className="h-16 w-16 mx-auto mb-6 text-red-400/30" />
-                <h2 className="text-2xl font-bold text-white">Case Not Found</h2>
-                <p className="text-white/40 mt-2">This request may have been deleted or moved.</p>
-                <button onClick={() => router.back()} className="mt-8 text-emerald-400 font-bold hover:underline">Back to Dashboard</button>
+            <div className="py-40 text-center">
+                <AlertCircle className="mx-auto mb-6 h-16 w-16 text-red-200" />
+                <h2 className="text-2xl font-bold text-[#163332]">Case Not Found</h2>
+                <p className="mt-2 text-[#698782]">This request may have been deleted or moved.</p>
+                <button onClick={() => router.back()} className="mt-8 font-bold text-[#2c756e] hover:underline">
+                    Back to Dashboard
+                </button>
             </div>
         );
     }
 
     const urgencyConfig = {
-        routine: "text-emerald-400 bg-emerald-500/10",
-        soon: "text-amber-400 bg-amber-500/10",
-        urgent: "text-red-400 bg-red-500/10",
+        routine: "bg-emerald-500/10 text-emerald-600",
+        soon: "bg-amber-500/10 text-amber-600",
+        urgent: "bg-red-500/10 text-red-600",
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-32">
-            {/* Header */}
+        <div className="mx-auto max-w-6xl space-y-8 pb-32 text-[#163332]">
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => router.back()}
-                    className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7ebe6] bg-white text-[#8aa39e] shadow-[0_10px_24px_rgba(19,51,50,0.05)] transition-all hover:text-[#163332]"
                 >
                     <ChevronLeft className="h-6 w-6" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Case Review</h1>
-                    <p className="text-white/50 text-sm">Patient Record: <span className="text-emerald-400 font-medium">{consult.id.slice(0, 8)}</span></p>
+                    <h1 className="text-2xl font-bold tracking-tight text-[#163332]">Case Review</h1>
+                    <p className="text-sm text-[#698782]">
+                        Patient Record: <span className="font-medium text-[#2c756e]">{consult.id.slice(0, 8)}</span>
+                    </p>
                 </div>
 
-                <div className={cn("ml-auto px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest", urgencyConfig[consult.urgency])}>
+                <div className={cn("ml-auto rounded-2xl px-4 py-2 text-xs font-bold uppercase tracking-widest", urgencyConfig[consult.urgency])}>
                     {consult.urgency} Priority
                 </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-[2rem] w-fit">
+            <div className="flex w-fit items-center gap-1 rounded-[2rem] border border-[#d7ebe6] bg-white p-1.5 shadow-[0_10px_24px_rgba(19,51,50,0.04)]">
                 <button
                     onClick={() => setActiveTab("case")}
                     className={cn(
-                        "flex items-center gap-3 px-8 py-3 rounded-[1.5rem] font-bold text-sm transition-all",
+                        "flex items-center gap-3 rounded-[1.5rem] px-8 py-3 text-sm font-bold transition-all",
                         activeTab === "case"
-                            ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20"
-                            : "text-white/40 hover:text-white hover:bg-white/5"
+                            ? "bg-[#2c756e] text-white shadow-lg shadow-[#2c756e]/15"
+                            : "text-[#7d9a95] hover:bg-[#f4fbf9] hover:text-[#163332]",
                     )}
                 >
                     <Activity className="h-4 w-4" /> Case Review
@@ -213,112 +224,136 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
                 <button
                     onClick={() => setActiveTab("discussion")}
                     className={cn(
-                        "flex items-center gap-3 px-8 py-3 rounded-[1.5rem] font-bold text-sm transition-all relative",
+                        "relative flex items-center gap-3 rounded-[1.5rem] px-8 py-3 text-sm font-bold transition-all",
                         activeTab === "discussion"
-                            ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20"
-                            : "text-white/40 hover:text-white hover:bg-white/5"
+                            ? "bg-[#2c756e] text-white shadow-lg shadow-[#2c756e]/15"
+                            : "text-[#7d9a95] hover:bg-[#f4fbf9] hover:text-[#163332]",
                     )}
                 >
                     <MessageCircle className="h-4 w-4" /> Patient Discussion
                     {consult.messages && consult.messages.length > 0 && activeTab !== "discussion" && (
-                        <span className="absolute top-2 right-4 h-2 w-2 bg-red-500 rounded-full border border-black animate-pulse" />
+                        <span className="absolute right-4 top-2 h-2 w-2 rounded-full border border-white bg-red-500 animate-pulse" />
                     )}
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content Column */}
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                     {activeTab === "case" ? (
                         <div className="space-y-8">
-                            {/* Patient Context Card */}
-                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-10 opacity-[0.03]">
+                            <div className="relative overflow-hidden rounded-[2.5rem] border border-[#dcece8] bg-white p-10 shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+                                <div className="absolute right-0 top-0 p-10 opacity-[0.05]">
                                     <User className="h-40 w-40" />
                                 </div>
-                                <div className="flex items-center gap-6 mb-8 relative z-10">
-                                    <div className="h-20 w-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                                        <User className="h-10 w-10 text-white/30" />
+                                <div className="relative z-10 mb-8 flex items-center gap-6">
+                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl border border-[#d7ebe6] bg-[#f4fbf9]">
+                                        <User className="h-10 w-10 text-[#9bb3ae]" />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-bold text-white tracking-tight">{consult.user.name}</h2>
-                                        <div className="flex items-center gap-3 text-sm text-white/40 mt-1 font-medium">
+                                        <h2 className="text-3xl font-bold tracking-tight text-[#163332]">{consult.user.name}</h2>
+                                        <div className="mt-1 flex items-center gap-3 text-sm font-medium text-[#698782]">
                                             <span>{consult.user.age} Years</span>
-                                            <span className="h-1 w-1 bg-white/20 rounded-full" />
+                                            <span className="h-1 w-1 rounded-full bg-[#c6d9d4]" />
                                             <span>{consult.user.gender}</span>
-                                            <span className="h-1 w-1 bg-white/20 rounded-full" />
-                                            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Received {format(new Date(consult.created_at), "HH:mm, MMM d")}</span>
+                                            <span className="h-1 w-1 rounded-full bg-[#c6d9d4]" />
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock className="h-3.5 w-3.5" /> Received {format(new Date(consult.created_at), "HH:mm, MMM d")}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-8 relative z-10">
+                                <div className="relative z-10 grid grid-cols-2 gap-8">
                                     <div>
-                                        <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-2">Known Allergies</h4>
-                                        <p className={cn("text-sm font-medium", consult.user.known_allergies ? "text-red-400" : "text-white/40")}>
+                                        <h4 className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8aa39e]">Known Allergies</h4>
+                                        <p className={cn("text-sm font-medium", consult.user.known_allergies ? "text-red-500" : "text-[#698782]")}>
                                             {consult.user.known_allergies || "None Reported"}
                                         </p>
                                     </div>
                                     <div>
-                                        <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-2">Pre-existing Conditions</h4>
-                                        <p className="text-sm font-medium text-white/60">
+                                        <h4 className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8aa39e]">Pre-existing Conditions</h4>
+                                        <p className="text-sm font-medium text-[#698782]">
                                             {consult.user.pre_existing_conditions || "None Reported"}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Medical Evidence */}
                             <div className="space-y-6">
-                                <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <FileText className="h-5 w-5 text-emerald-400" /> Medical Evidence
+                                <h3 className="flex items-center gap-3 text-xl font-bold text-[#163332]">
+                                    <FileText className="h-5 w-5 text-[#2c756e]" /> Medical Evidence
                                 </h3>
-                                <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8">
-                                    <h4 className="text-xs font-bold text-emerald-400/50 uppercase tracking-widest mb-4">Patient-Reported Symptoms</h4>
-                                    <p className="text-lg text-white/80 leading-relaxed font-medium">"{consult.symptoms}"</p>
+
+                                <div className="rounded-3xl border border-[#dcece8] bg-white p-8 shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+                                    <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-[#2c756e]">Patient-Reported Symptoms</h4>
+                                    <p className="text-lg font-medium leading-relaxed text-[#163332]">&ldquo;{consult.symptoms}&rdquo;</p>
                                     {consult.patient_note && (
-                                        <div className="mt-6 pt-6 border-t border-white/5">
-                                            <h4 className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3">Additional Context from Patient</h4>
-                                            <p className="text-sm text-white/50 bg-white/5 p-4 rounded-2xl italic leading-relaxed">"{consult.patient_note}"</p>
+                                        <div className="mt-6 border-t border-[#e7f1ef] pt-6">
+                                            <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-[#8aa39e]">Additional Context from Patient</h4>
+                                            <p className="rounded-2xl bg-[#f4fbf9] p-4 text-sm italic leading-relaxed text-[#698782]">
+                                                &ldquo;{consult.patient_note}&rdquo;
+                                            </p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
-                                    <div className="flex items-center justify-between mb-8">
+                                <div className="rounded-[2.5rem] border border-[#dcece8] bg-white p-10 shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+                                    <div className="mb-8 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                                                {consult.sharing_mode === "summary" ? <Bot className="h-5 w-5 text-blue-400" /> : <Shield className="h-5 w-5 text-blue-400" />}
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf5ff]">
+                                                {consult.sharing_mode === "summary" ? (
+                                                    <Bot className="h-5 w-5 text-[#4d7bb3]" />
+                                                ) : (
+                                                    <Shield className="h-5 w-5 text-[#4d7bb3]" />
+                                                )}
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-bold text-white">{consult.sharing_mode === "summary" ? "AI Triage Summary" : "Full AI Transcript"}</h4>
-                                                <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-0.5">Patient consented for "{consult.sharing_mode}" access</p>
+                                                <h4 className="text-sm font-bold text-[#163332]">
+                                                    {consult.sharing_mode === "summary" ? "AI Triage Summary" : "Full AI Transcript"}
+                                                </h4>
+                                                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[#8aa39e]">
+                                                    Patient consented for &ldquo;{consult.sharing_mode}&rdquo; access
+                                                </p>
                                             </div>
                                         </div>
                                         {consult.sharing_mode === "full" && (
-                                            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-full">TOTAL CONTEXT</span>
+                                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-700">
+                                                TOTAL CONTEXT
+                                            </span>
                                         )}
                                     </div>
+
                                     {consult.sharing_mode === "summary" ? (
-                                        <div className="bg-black/40 border border-white/5 rounded-3xl p-8">
-                                            <pre className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed font-sans">
+                                        <div className="rounded-3xl border border-[#e7f1ef] bg-[#f7fbfa] p-8">
+                                            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-[#5f7e79]">
                                                 {consult.shared_summary || "AI summary generation failed or not available."}
                                             </pre>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                                        <div className="max-h-[600px] space-y-4 overflow-y-auto pr-4 custom-scrollbar">
                                             {chatHistory.length === 0 ? (
-                                                <div className="text-center py-10 text-white/20"><p className="text-sm">No transcript available.</p></div>
+                                                <div className="py-10 text-center text-[#8aa39e]">
+                                                    <p className="text-sm">No transcript available.</p>
+                                                </div>
                                             ) : (
                                                 chatHistory.map((msg, idx) => (
-                                                    <div key={idx} className={cn(
-                                                        "p-6 rounded-3xl text-sm leading-relaxed",
-                                                        msg.role === "user"
-                                                            ? "bg-white/5 border border-white/10 ml-8 text-white/80"
-                                                            : "bg-emerald-500/5 border border-emerald-500/10 mr-8 text-emerald-400/90"
-                                                    )}>
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            {msg.role === "user" ? <User className="h-3 w-3 text-white/30" /> : <Bot className="h-3 w-3 text-emerald-500/50" />}
-                                                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">{msg.role === "user" ? "Patient" : "Vitalis AI"}</span>
+                                                    <div
+                                                        key={idx}
+                                                        className={cn(
+                                                            "rounded-3xl p-6 text-sm leading-relaxed",
+                                                            msg.role === "user"
+                                                                ? "ml-8 border border-[#dcece8] bg-[#f7fbfa] text-[#4f6d68]"
+                                                                : "mr-8 border border-emerald-100 bg-emerald-50 text-emerald-700",
+                                                        )}
+                                                    >
+                                                        <div className="mb-2 flex items-center gap-2">
+                                                            {msg.role === "user" ? (
+                                                                <User className="h-3 w-3 text-[#9bb3ae]" />
+                                                            ) : (
+                                                                <Bot className="h-3 w-3 text-emerald-500" />
+                                                            )}
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
+                                                                {msg.role === "user" ? "Patient" : "Vitalis AI"}
+                                                            </span>
                                                         </div>
                                                         {msg.content}
                                                     </div>
@@ -330,25 +365,32 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
 
                                 {consult.replies && consult.replies.length > 0 && (
                                     <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                            <MessageSquare className="h-5 w-5 text-emerald-400" /> Correspondence History
+                                        <h3 className="flex items-center gap-3 text-xl font-bold text-[#163332]">
+                                            <MessageSquare className="h-5 w-5 text-[#2c756e]" /> Correspondence History
                                         </h3>
                                         {consult.replies.map((reply, idx) => (
-                                            <div key={idx} className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-4">
+                                            <div
+                                                key={idx}
+                                                className="space-y-4 rounded-3xl border border-[#dcece8] bg-white p-8 shadow-[0_14px_32px_rgba(19,51,50,0.05)]"
+                                            >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="h-6 w-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                                                            <Stethoscope className="h-3 w-3 text-emerald-400" />
+                                                        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100">
+                                                            <Stethoscope className="h-3 w-3 text-emerald-700" />
                                                         </div>
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Your Response · {format(new Date(reply.created_at), "MMM d, HH:mm")}</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#8aa39e]">
+                                                            Your Response · {format(new Date(reply.created_at), "MMM d, HH:mm")}
+                                                        </span>
                                                     </div>
                                                     {reply.is_ai_correction && (
-                                                        <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">AI CORRECTION</span>
+                                                        <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase text-amber-500">
+                                                            AI CORRECTION
+                                                        </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{reply.reply_text}</p>
+                                                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#4f6d68]">{reply.reply_text}</p>
                                                 {reply.recommendation && (
-                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-400/60 bg-emerald-400/5 px-3 py-2 rounded-xl">
+                                                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
                                                         <ArrowRight className="h-3 w-3" /> REC: {reply.recommendation}
                                                     </div>
                                                 )}
@@ -359,47 +401,50 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
                             </div>
                         </div>
                     ) : (
-                        /* Discussion Tab */
-                        <div className="bg-white/5 border border-white/10 rounded-[3rem] overflow-hidden flex flex-col min-h-[600px] shadow-2xl backdrop-blur-xl">
-                            <div className="p-10 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                        <div className="flex min-h-[600px] flex-col overflow-hidden rounded-[3rem] border border-[#dcece8] bg-white shadow-[0_18px_40px_rgba(19,51,50,0.06)]">
+                            <div className="flex items-center justify-between border-b border-[#e7f1ef] bg-[#f7fbfa] p-10">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                        <MessageCircle className="h-6 w-6 text-emerald-400" /> Patient Discussion
+                                    <h3 className="flex items-center gap-3 text-xl font-bold text-[#163332]">
+                                        <MessageCircle className="h-6 w-6 text-[#2c756e]" /> Patient Discussion
                                     </h3>
-                                    <p className="text-xs text-white/30 mt-1">Direct correspondence with {consult.user.name}</p>
+                                    <p className="mt-1 text-xs text-[#8aa39e]">Direct correspondence with {consult.user.name}</p>
                                 </div>
-                                <div className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-full uppercase tracking-widest border border-emerald-500/20">Live & Encrypted</div>
+                                <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                                    Live & Encrypted
+                                </div>
                             </div>
 
-                            <div className="p-10 space-y-6 h-[450px] overflow-y-auto custom-scrollbar flex flex-col">
-                                {(!consult.messages || consult.messages.length === 0) ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-center px-10">
-                                        <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                                            <MessageCircle className="h-10 w-10 text-white/10" />
+                            <div className="flex h-[450px] flex-col space-y-6 overflow-y-auto p-10 custom-scrollbar">
+                                {!consult.messages || consult.messages.length === 0 ? (
+                                    <div className="flex flex-1 flex-col items-center justify-center px-10 text-center">
+                                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#f4fbf9]">
+                                            <MessageCircle className="h-10 w-10 text-[#c4d7d3]" />
                                         </div>
-                                        <p className="text-white/30 text-sm max-w-xs mx-auto leading-relaxed">
+                                        <p className="mx-auto max-w-xs text-sm leading-relaxed text-[#8aa39e]">
                                             No messages yet. The patient may contact you here after reading your clinical opinion.
                                         </p>
                                     </div>
                                 ) : (
                                     consult.messages.map((m, idx) => (
-                                        <div key={idx} className={cn(
-                                            "max-w-[75%] p-5 rounded-3xl text-sm leading-relaxed shadow-lg",
-                                            m.sender_role === "doctor"
-                                                ? "bg-emerald-500 text-black self-end ml-auto rounded-tr-none shadow-emerald-500/10"
-                                                : "bg-white/10 text-white/90 self-start mr-auto rounded-tl-none border border-white/5 backdrop-blur-md"
-                                        )}>
-                                            <p className={cn(
-                                                "font-bold text-[9px] uppercase tracking-widest mb-2 opacity-50",
-                                                m.sender_role === "doctor" ? "text-black" : "text-emerald-400"
-                                            )}>
+                                        <div
+                                            key={idx}
+                                            className={cn(
+                                                "max-w-[75%] rounded-3xl p-5 text-sm leading-relaxed shadow-lg",
+                                                m.sender_role === "doctor"
+                                                    ? "ml-auto self-end rounded-tr-none bg-[#2c756e] text-white shadow-[#2c756e]/10"
+                                                    : "mr-auto self-start rounded-tl-none border border-[#dcece8] bg-[#f7fbfa] text-[#4f6d68]",
+                                            )}
+                                        >
+                                            <p
+                                                className={cn(
+                                                    "mb-2 text-[9px] font-bold uppercase tracking-widest opacity-50",
+                                                    m.sender_role === "doctor" ? "text-white" : "text-[#2c756e]",
+                                                )}
+                                            >
                                                 {m.sender_role === "doctor" ? "You" : consult.user.name}
                                             </p>
                                             <p className="whitespace-pre-wrap font-medium">{m.content}</p>
-                                            <p className={cn(
-                                                "text-[8px] mt-2 opacity-40 font-bold",
-                                                m.sender_role === "doctor" ? "text-right" : "text-left"
-                                            )}>
+                                            <p className={cn("mt-2 text-[8px] font-bold opacity-40", m.sender_role === "doctor" ? "text-right" : "text-left")}>
                                                 {format(new Date(m.created_at), "HH:mm")}
                                             </p>
                                         </div>
@@ -407,7 +452,7 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
                                 )}
                             </div>
 
-                            <div className="p-8 bg-white/[0.02] border-t border-white/5">
+                            <div className="border-t border-[#e7f1ef] bg-[#f7fbfa] p-8">
                                 <div className="relative">
                                     <textarea
                                         value={messageInput}
@@ -419,123 +464,135 @@ export default function DoctorConsultationReview({ params }: { params: Promise<{
                                             }
                                         }}
                                         placeholder="Reply to patient..."
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-6 pr-20 py-4 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-emerald-500/50 transition-all resize-none shadow-inner min-h-[60px]"
+                                        className="min-h-[60px] w-full resize-none rounded-2xl border border-[#d7ebe6] bg-white py-4 pl-6 pr-20 text-sm text-[#163332] placeholder:text-[#9bb3ae] shadow-inner transition-all focus:border-[#9dcfc6] focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                                         rows={1}
                                     />
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={isSending || !messageInput.trim()}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-emerald-500 text-black flex items-center justify-center hover:bg-emerald-400 disabled:opacity-50 transition-all active:scale-90"
+                                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl bg-[#2c756e] text-white transition-all active:scale-90 hover:bg-[#245f5a] disabled:opacity-50"
                                     >
                                         {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                     </button>
                                 </div>
-                                <p className="text-[10px] text-white/20 mt-3 text-center italic font-medium">Messages are private and end-to-end encrypted</p>
+                                <p className="mt-3 text-center text-[10px] font-medium italic text-[#8aa39e]">
+                                    Messages are private and end-to-end encrypted
+                                </p>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Right Column: Review Action */}
                 <div className="space-y-8">
                     <div className="sticky top-8 space-y-8">
-                        {/* Review Form */}
-                        <div className="bg-[#0f0f0f] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl shadow-emerald-500/5">
-                            <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3">
-                                <Send className="h-5 w-5 text-emerald-400" /> Send Response
+                        <div className="rounded-[2.5rem] border border-[#dcece8] bg-white p-10 shadow-[0_18px_40px_rgba(19,51,50,0.06)]">
+                            <h3 className="mb-8 flex items-center gap-3 text-xl font-bold text-[#163332]">
+                                <Send className="h-5 w-5 text-[#2c756e]" /> Send Response
                             </h3>
 
                             <div className="space-y-6">
-                                {/* Reply Text */}
                                 <div className="space-y-3">
-                                    <label className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Professional Opinion *</label>
+                                    <label className="ml-1 text-[11px] font-bold uppercase tracking-widest text-[#8aa39e]">
+                                        Professional Opinion *
+                                    </label>
                                     <textarea
                                         value={replyText}
                                         onChange={(e) => setReplyText(e.target.value)}
                                         placeholder="Explain your findings to the patient..."
                                         rows={6}
-                                        className="w-full bg-white/5 border border-white/10 rounded px-6 py-4 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:bg-white/8 transition-all resize-none shadow-inner"
+                                        className="w-full resize-none rounded-2xl border border-[#d7ebe6] bg-[#f9fcfb] px-6 py-4 text-sm text-[#163332] placeholder:text-[#9bb3ae] shadow-inner transition-all focus:border-[#9dcfc6] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                                     />
                                 </div>
 
-                                {/* Recommendation */}
                                 <div className="space-y-3">
-                                    <label className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Next Step / Specialist</label>
+                                    <label className="ml-1 text-[11px] font-bold uppercase tracking-widest text-[#8aa39e]">
+                                        Next Step / Specialist
+                                    </label>
                                     <input
                                         type="text"
                                         value={recommendation}
                                         onChange={(e) => setRecommendation(e.target.value)}
                                         placeholder="e.g. Schedule visit with Cardiologist"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all shadow-inner"
+                                        className="w-full rounded-2xl border border-[#d7ebe6] bg-[#f9fcfb] px-6 py-4 text-sm text-[#163332] placeholder:text-[#9bb3ae] shadow-inner transition-all focus:border-[#9dcfc6] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                                     />
                                 </div>
 
-                                {/* AI Correction Toggle */}
                                 <button
                                     onClick={() => setIsAICorrection(!isAICorrection)}
                                     className={cn(
-                                        "w-full p-4 rounded-2xl border flex items-center gap-4 transition-all group text-left",
+                                        "group flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all",
                                         isAICorrection
-                                            ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
-                                            : "bg-white/5 border-white/10 text-white/40 hover:bg-white/8"
+                                            ? "border-amber-300 bg-amber-50 text-amber-700"
+                                            : "border-[#d7ebe6] bg-[#f9fcfb] text-[#698782] hover:bg-white",
                                     )}
                                 >
-                                    <AlertTriangle className={cn("h-5 w-5 shrink-0", isAICorrection ? "text-amber-500" : "text-white/20")} />
+                                    <AlertTriangle className={cn("h-5 w-5 shrink-0", isAICorrection ? "text-amber-600" : "text-[#9bb3ae]")} />
                                     <div>
                                         <p className="text-xs font-bold leading-none">Flag AI Discrepancy</p>
-                                        <p className="text-[10px] mt-1.5 opacity-60">Tick this if your opinion differs significantly from the AI diagnosis.</p>
+                                        <p className="mt-1.5 text-[10px] opacity-60">
+                                            Tick this if your opinion differs significantly from the AI diagnosis.
+                                        </p>
                                     </div>
-                                    <div className={cn(
-                                        "ml-auto h-5 w-5 rounded-full border flex items-center justify-center transition-all",
-                                        isAICorrection ? "border-amber-500 bg-amber-500 text-black" : "border-white/20"
-                                    )}>
+                                    <div
+                                        className={cn(
+                                            "ml-auto flex h-5 w-5 items-center justify-center rounded-full border transition-all",
+                                            isAICorrection ? "border-amber-500 bg-amber-500 text-white" : "border-[#c6d9d4]",
+                                        )}
+                                    >
                                         {isAICorrection && <CheckCircle className="h-3 w-3 fill-current" />}
                                     </div>
                                 </button>
 
-                                {/* Submit */}
                                 <button
                                     onClick={handleSubmitReply}
                                     disabled={isSubmitting || !replyText.trim()}
-                                    className="w-full h-14 bg-emerald-500 text-black font-extrabold text-sm rounded-2xl hover:bg-emerald-400 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-xl shadow-emerald-500/10 active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#2c756e] text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(44,117,110,0.18)] transition-all active:scale-95 hover:bg-[#245f5a] disabled:pointer-events-none disabled:opacity-50"
                                 >
                                     {isSubmitting ? (
-                                        <><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</>
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                                        </>
                                     ) : (
-                                        <><Send className="h-4 w-4" /> Send Medical Opinion</>
+                                        <>
+                                            <Send className="h-4 w-4" /> Send Medical Opinion
+                                        </>
                                     )}
                                 </button>
 
                                 <button
                                     onClick={async () => {
-                                        if (confirm("Escalate this case? This will notify administrators that specialist intervention is required.")) {
+                                        if (
+                                            confirm(
+                                                "Escalate this case? This will notify administrators that specialist intervention is required.",
+                                            )
+                                        ) {
                                             const res = await api.post(`/doctor/consultations/${id}/reply`, {
-                                                reply_text: "CASE ESCALATED: Medical provider has requested specialized intervention for this case.",
-                                                recommendation: "Immediate referral to secondary care team."
+                                                reply_text:
+                                                    "CASE ESCALATED: Medical provider has requested specialized intervention for this case.",
+                                                recommendation: "Immediate referral to secondary care team.",
                                             });
                                             if (res.success) {
                                                 router.push("/doctor/dashboard");
                                             }
                                         }
                                     }}
-                                    className="w-full h-12 bg-white/5 border border-white/10 text-white/40 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/5 font-bold text-[11px] uppercase tracking-widest rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[#d7ebe6] bg-[#f9fcfb] text-[11px] font-bold uppercase tracking-widest text-[#698782] transition-all active:scale-95 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                                 >
                                     <AlertTriangle className="h-3.5 w-3.5" /> Escalate Case
                                 </button>
 
-                                <p className="text-[10px] text-center text-white/20 font-medium px-4 pt-2">
+                                <p className="px-4 pt-2 text-center text-[10px] font-medium text-[#8aa39e]">
                                     By submitting, you verify that this medical opinion is based on the evidence provided above.
                                 </p>
                             </div>
                         </div>
 
-                        {/* Quick Reference / Disclaimer */}
-                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-3xl p-6">
-                            <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-2 mb-2">
+                        <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6">
+                            <h4 className="mb-2 flex items-center gap-2 text-xs font-bold text-emerald-700">
                                 <Info className="h-3.5 w-3.5" /> Best Practice
                             </h4>
-                            <p className="text-[11px] text-emerald-400/60 leading-relaxed">
-                                Always cross-verify structured AI summaries with the patient's note. If in doubt, recommend a physical examination.
+                            <p className="text-[11px] leading-relaxed text-emerald-700/80">
+                                Always cross-verify structured AI summaries with the patient&apos;s note. If in doubt, recommend a physical examination.
                             </p>
                         </div>
                     </div>

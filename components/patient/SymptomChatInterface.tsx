@@ -12,6 +12,19 @@ interface ChatMessage {
     content: string;
 }
 
+interface SessionDetailResponse {
+    chat_history: ChatMessage[] | string;
+    status?: string;
+}
+
+interface ChatResponse {
+    bot_message: string;
+    is_diagnosis_ready: boolean;
+    possible_conditions?: Array<{ name: string; description: string; confidence: string; common_causes: string }>;
+    urgency_level?: string;
+    health_advice?: string;
+}
+
 interface Message {
     id: string;
     role: "assistant" | "user";
@@ -28,7 +41,6 @@ const GREETING: Message = {
     content: "Hello! I'm Vitalis, your AI symptom assessment assistant. Please describe what you're feeling, including how long you've had the symptoms.",
 };
 
-// Convert server-side ChatMessage[] (role: "model"/"user") to display Messages
 function serverHistoryToMessages(history: ChatMessage[]): Message[] {
     return history.map((m, i) => ({
         id: `h-${i}`,
@@ -44,16 +56,15 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
     const [isThinking, setIsThinking] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const [hasDiagnosis, setHasDiagnosis] = useState(false); // tracks if any message is a final diagnosis
-    const [diagnosisSymptoms, setDiagnosisSymptoms] = useState(""); // first user message for pre-fill
+    const [hasDiagnosis, setHasDiagnosis] = useState(false);
+    const [diagnosisSymptoms, setDiagnosisSymptoms] = useState("");
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // === Load session from server on mount (page refresh restore) ===
     useEffect(() => {
         const loadSession = async () => {
             setIsLoadingHistory(true);
-            const res = await api.get<any>(`/symptoms/sessions/${chatId}`);
+            const res = await api.get<SessionDetailResponse>(`/symptoms/sessions/${chatId}`);
             if (res.success && res.data) {
                 const stored = res.data.chat_history;
                 if (stored && stored !== "[]" && stored !== "") {
@@ -62,17 +73,12 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                         if (parsed.length > 0) {
                             const mappedMessages = serverHistoryToMessages(parsed);
                             setMessages(mappedMessages);
-                            
-                            // Check if history already has a diagnosis
-                            const hasDiag = parsed.some(m => m.role === "model" && m.content.includes("possible_conditions")); 
-                            // Note: Since server stores raw JSON in some cases, we might need a better check.
-                            // But usually, if the session status is 'completed' we can assume diagnosis.
+
                             if (res.data.status === "completed") {
                                 setHasDiagnosis(true);
                             }
 
-                            // Capture first user message for symptoms pre-fill
-                            const firstUser = parsed.find(m => m.role === "user");
+                            const firstUser = parsed.find((m) => m.role === "user");
                             if (firstUser) setDiagnosisSymptoms(firstUser.content);
                         }
                     } catch (e) {
@@ -87,7 +93,6 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
         loadSession();
     }, [chatId]);
 
-    // === Auto-scroll to bottom ===
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isThinking]);
@@ -102,15 +107,14 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
         setIsThinking(true);
 
         try {
-            // Build the chat_history payload for the Go backend (role: "user" | "model")
             const chatHistory: ChatMessage[] = updatedMessages
-                .filter(m => m.id !== "greeting") // exclude our static greeting we injected
-                .map(m => ({
+                .filter((m) => m.id !== "greeting")
+                .map((m) => ({
                     role: m.role === "assistant" ? "model" : "user",
                     content: m.content,
                 }));
 
-            const response = await api.post<any>("/symptoms/chat", {
+            const response = await api.post<ChatResponse>("/symptoms/chat", {
                 session_id: chatId,
                 patient_context: "Age: 30, General Health: Good",
                 chat_history: chatHistory,
@@ -127,29 +131,34 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                     urgency: aiData.urgency_level,
                     advice: aiData.health_advice,
                 };
-                setMessages(prev => [...prev, aiMsg]);
-                
+                setMessages((prev) => [...prev, aiMsg]);
+
                 if (aiData.is_diagnosis_ready) {
                     setHasDiagnosis(true);
                 }
 
-                // If this was the first turn, capture symptoms
                 if (!diagnosisSymptoms && input) {
                     setDiagnosisSymptoms(input);
                 }
             } else {
-                setMessages(prev => [...prev, {
-                    id: (Date.now() + 1).toString(),
-                    role: "assistant",
-                    content: `Error: ${response.error || "Failed to reach Vitalis AI."}`,
-                }]);
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: (Date.now() + 1).toString(),
+                        role: "assistant",
+                        content: `Error: ${response.error || "Failed to reach Vitalis AI."}`,
+                    },
+                ]);
             }
         } catch {
-            setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                content: "I'm having trouble connecting right now. Please try again later.",
-            }]);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: "I'm having trouble connecting right now. Please try again later.",
+                },
+            ]);
         } finally {
             setIsThinking(false);
         }
@@ -157,14 +166,11 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
 
     if (loadError) {
         return (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-white/50">
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-[#698782]">
                 <AlertCircle className="h-10 w-10 text-red-400/60" />
                 <p className="text-sm">{loadError}</p>
-                <button
-                    onClick={() => router.push("/symptom-checker")}
-                    className="text-xs text-emerald-400 underline"
-                >
-                    ← Back to sessions
+                <button onClick={() => router.push("/symptom-checker")} className="text-xs text-[#2c756e] underline">
+                    Back to sessions
                 </button>
             </div>
         );
@@ -172,93 +178,91 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
 
     if (isLoadingHistory) {
         return (
-            <div className="flex items-center justify-center h-full gap-3 text-white/30">
-                <Loader2 className="h-5 w-5 animate-spin" />
+            <div className="flex h-full items-center justify-center gap-3 text-[#8aa39e]">
+                <Loader2 className="h-5 w-5 animate-spin text-[#2c756e]" />
                 <span className="text-sm">Restoring session...</span>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-full w-full bg-[#050505] relative">
-
-            {/* Floating Reset Button */}
-            <div className="absolute top-4 right-8 z-20">
+        <div className="relative flex h-full w-full flex-col bg-[#f7fbfa]">
+            <div className="absolute right-8 top-4 z-20">
                 <button
                     onClick={() => router.push("/symptom-checker")}
-                    className="h-10 px-4 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold shadow-xl backdrop-blur-md"
+                    className="flex h-10 items-center gap-2 rounded-full border border-[#d7ebe6] bg-white px-4 text-xs font-bold text-[#698782] shadow-[0_12px_28px_rgba(19,51,50,0.05)] transition-all hover:bg-[#eef8f5] hover:text-[#163332]"
                 >
                     <Info className="h-4 w-4" />
                     All Sessions
                 </button>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-6 md:px-12 py-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                <div className="w-full max-w-7xl mx-auto space-y-6 pb-2">
-                    <div className="text-center py-4">
-                        <p className="text-white/20 text-xs font-bold uppercase tracking-widest">Session · {chatId.slice(0, 8)}</p>
+            <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-thin scrollbar-thumb-[#d7ebe6] scrollbar-track-transparent md:px-12">
+                <div className="mx-auto w-full max-w-7xl space-y-6 pb-2">
+                    <div className="py-4 text-center">
+                        <p className="text-xs font-bold uppercase tracking-widest text-[#8aa39e]">Session · {chatId.slice(0, 8)}</p>
                     </div>
 
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
-                            className={cn(
-                                "flex gap-6 w-full",
-                                msg.role === "user" ? "flex-row-reverse" : "flex-row"
-                            )}
+                            className={cn("flex w-full gap-6", msg.role === "user" ? "flex-row-reverse" : "flex-row")}
                         >
-                            {/* Avatar */}
-                            <div className={cn(
-                                "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center",
-                                msg.role === "assistant"
-                                    ? "bg-white/5 border border-white/10"
-                                    : "bg-emerald-500/20"
-                            )}>
-                                {msg.role === "assistant"
-                                    ? <Bot className="h-6 w-6 text-emerald-400" />
-                                    : <User className="h-6 w-6 text-emerald-400" />
-                                }
+                            <div
+                                className={cn(
+                                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
+                                    msg.role === "assistant" ? "border border-[#d7ebe6] bg-white" : "bg-[#dff2ee]",
+                                )}
+                            >
+                                {msg.role === "assistant" ? (
+                                    <Bot className="h-6 w-6 text-[#2c756e]" />
+                                ) : (
+                                    <User className="h-6 w-6 text-[#2c756e]" />
+                                )}
                             </div>
 
-                            {/* Bubble */}
-                            <div className={cn(
-                                "px-6 py-4 rounded-[2rem] text-[16px] leading-relaxed relative max-w-[70%]",
-                                msg.role === "assistant"
-                                    ? "bg-[#0a2a2a] text-white/90 rounded-tl-none border border-white/5 shadow-xl shadow-black/20"
-                                    : "bg-emerald-500/20 text-emerald-50 rounded-tr-none border border-emerald-500/20"
-                            )}>
+                            <div
+                                className={cn(
+                                    "relative max-w-[70%] rounded-[2rem] px-6 py-4 text-[16px] leading-relaxed",
+                                    msg.role === "assistant"
+                                        ? "rounded-tl-none border border-[#dcece8] bg-white text-[#365653] shadow-[0_14px_32px_rgba(19,51,50,0.05)]"
+                                        : "rounded-tr-none border border-[#bfe0d9] bg-[#e8f6f3] text-[#163332]",
+                                )}
+                            >
                                 {msg.content}
 
-                                {/* Diagnosis Cards */}
                                 {msg.isDiagnosis && msg.conditions && (
-                                    <div className="mt-4 space-y-4 pt-4 border-t border-white/10">
+                                    <div className="mt-4 space-y-4 border-t border-[#e7f1ef] pt-4">
                                         {msg.conditions.map((cond, idx) => (
-                                            <div key={idx} className="bg-black/20 p-4 rounded-xl">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-bold text-emerald-400">{cond.name}</h4>
-                                                    <span className={cn(
-                                                        "text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full",
-                                                        cond.confidence === "high" ? "bg-red-500/20 text-red-500" :
-                                                            cond.confidence === "medium" ? "bg-amber-500/20 text-amber-500" :
-                                                                "bg-emerald-500/20 text-emerald-500"
-                                                    )}>
+                                            <div key={idx} className="rounded-xl border border-[#e7f1ef] bg-[#f9fcfb] p-4">
+                                                <div className="mb-2 flex items-start justify-between">
+                                                    <h4 className="font-bold text-emerald-600">{cond.name}</h4>
+                                                    <span
+                                                        className={cn(
+                                                            "rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                                            cond.confidence === "high"
+                                                                ? "bg-red-500/20 text-red-500"
+                                                                : cond.confidence === "medium"
+                                                                  ? "bg-amber-500/20 text-amber-500"
+                                                                  : "bg-emerald-500/20 text-emerald-500",
+                                                        )}
+                                                    >
                                                         {cond.confidence} Match
                                                     </span>
                                                 </div>
-                                                <p className="text-sm opacity-80">{cond.description}</p>
+                                                <p className="text-sm text-[#5c7873]">{cond.description}</p>
                                             </div>
                                         ))}
 
                                         {msg.advice && (
-                                            <div className="mt-4 bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-xl">
-                                                <h4 className="font-bold text-emerald-500 mb-1 text-sm">Recommended Action</h4>
-                                                <p className="text-sm opacity-90">{msg.advice}</p>
+                                            <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                                                <h4 className="mb-1 text-sm font-bold text-emerald-600">Recommended Action</h4>
+                                                <p className="text-sm text-[#2f655f]">{msg.advice}</p>
                                             </div>
                                         )}
 
                                         {msg.urgency && (
-                                            <div className="mt-2 text-xs font-bold px-3 py-2 rounded-lg bg-white/5 inline-block capitalize">
+                                            <div className="mt-2 inline-block rounded-lg bg-[#f4fbf9] px-3 py-2 text-xs font-bold capitalize text-[#5c7873]">
                                                 Urgency: {msg.urgency.replace("_", " ")}
                                             </div>
                                         )}
@@ -269,32 +273,33 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                     ))}
 
                     {isThinking && (
-                        <div className="flex gap-6 w-full animate-pulse">
-                            <div className="h-12 w-12 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                                <Bot className="h-6 w-6 text-white/20" />
+                        <div className="flex w-full gap-6 animate-pulse">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#d7ebe6] bg-white">
+                                <Bot className="h-6 w-6 text-[#9db2ae]" />
                             </div>
-                            <div className="px-6 py-4 rounded-[2rem] bg-[#0a2a2a] rounded-tl-none border border-white/5 flex items-center gap-2 shadow-xl shadow-black/20">
-                                <div className="h-2.5 w-2.5 bg-white/20 rounded-full animate-bounce delay-75" />
-                                <div className="h-2.5 w-2.5 bg-white/20 rounded-full animate-bounce delay-150" />
-                                <div className="h-2.5 w-2.5 bg-white/20 rounded-full animate-bounce delay-300" />
+                            <div className="flex items-center gap-2 rounded-[2rem] rounded-tl-none border border-[#dcece8] bg-white px-6 py-4 shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+                                <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c5d9d5] delay-75" />
+                                <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c5d9d5] delay-150" />
+                                <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c5d9d5] delay-300" />
                             </div>
                         </div>
                     )}
 
-                    {/* Request Doctor Banner */}
                     {hasDiagnosis && (
                         <div className="mt-8 animate-fade-in-up">
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-8 flex flex-col items-center text-center gap-4">
-                                <div className="h-16 w-16 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                    <Stethoscope className="h-8 w-8 text-emerald-400" />
+                            <div className="flex flex-col items-center gap-4 rounded-3xl border border-[#cde7e1] bg-white p-8 text-center shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef8f5]">
+                                    <Stethoscope className="h-8 w-8 text-[#2c756e]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">Need a professional opinion?</h3>
-                                    <p className="text-white/50 text-sm mt-1 max-w-md">You can request a private consultation with one of our verified doctors to review your AI assessment.</p>
+                                    <h3 className="text-xl font-bold text-[#163332]">Need a professional opinion?</h3>
+                                    <p className="mt-1 max-w-md text-sm text-[#698782]">
+                                        You can request a private consultation with one of our verified doctors to review your AI assessment.
+                                    </p>
                                 </div>
-                                <Link 
+                                <Link
                                     href={`/consultation?session=${chatId}&symptoms=${encodeURIComponent(diagnosisSymptoms)}`}
-                                    className="px-8 py-3 rounded-2xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all shadow-lg hover:scale-105 active:scale-95"
+                                    className="rounded-2xl border border-[#8ec9be] bg-[#1d5a56] px-8 py-3 font-bold text-white transition-all hover:scale-105 hover:bg-[#236762] active:scale-95"
                                 >
                                     Request Doctor Consultation
                                 </Link>
@@ -306,10 +311,9 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                 </div>
             </div>
 
-            {/* Input Area */}
-            <div className="px-6 md:px-12 py-6 shrink-0 bg-gradient-to-t from-[#050505] via-[#050505] to-[#050505]/80 backdrop-blur-sm relative z-10">
-                <div className="w-full max-w-7xl mx-auto">
-                    <div className="relative flex gap-4 items-end">
+            <div className="relative z-10 shrink-0 border-t border-[#e7f1ef] bg-white px-6 py-6 md:px-12">
+                <div className="mx-auto w-full max-w-7xl">
+                    <div className="relative flex items-end gap-4">
                         <textarea
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -320,17 +324,17 @@ export default function SymptomChatInterface({ chatId }: { chatId: string }) {
                                 }
                             }}
                             placeholder="Type your symptoms here..."
-                            className="flex-1 bg-white/5 border border-white/10 outline-none resize-none h-[60px] min-h-[60px] max-h-40 rounded-[2rem] text-white placeholder:text-white/20 px-6 py-4 text-[16px] scrollbar-none focus:border-white/30 focus:bg-white/10 transition-all shadow-inner"
+                            className="h-[60px] min-h-[60px] max-h-40 flex-1 resize-none rounded-[2rem] border border-[#d7ebe6] bg-[#f7fbfa] px-6 py-4 text-[16px] text-[#163332] outline-none placeholder:text-[#8aa39e] shadow-inner transition-all focus:border-[#8ec9be] focus:bg-white"
                         />
                         <button
                             onClick={handleSend}
                             disabled={!input.trim() || isThinking}
-                            className="h-[60px] w-[60px] shrink-0 rounded-[2rem] bg-white text-[#0a2a2a] flex items-center justify-center hover:bg-white/90 disabled:bg-white/10 disabled:text-white/20 transition-all shadow-xl"
+                            className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-[2rem] border border-[#8ec9be] bg-[#1d5a56] text-white transition-all hover:bg-[#236762] disabled:border-[#d7ebe6] disabled:bg-[#eef4f2] disabled:text-[#9db2ae]"
                         >
-                            {isThinking ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6 ml-1" />}
+                            {isThinking ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="ml-1 h-6 w-6" />}
                         </button>
                     </div>
-                    <p className="text-center text-xs text-white/30 mt-4 font-medium tracking-wide">
+                    <p className="mt-4 text-center text-xs font-medium tracking-wide text-[#8aa39e]">
                         Disclaimer: Vitalis AI is for preliminary informational purposes and is not a substitute for professional medical advice.
                     </p>
                 </div>

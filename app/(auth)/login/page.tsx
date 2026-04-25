@@ -8,16 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, LogIn, Github } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
     Field,
-    FieldLabel,
     FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants/route.constants";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -58,10 +56,10 @@ function LoginContent() {
     async function onSubmit(data: LoginFormValues) {
         setIsLoading(true);
         try {
-            const response = await authService.login(data as any);
+            const response = await authService.login(data);
 
             if (response.success && response.data) {
-                const { user, role } = response.data as any;
+                const { user, role } = response.data;
                 const authUser = { ...user, role };
                 setAuth(authUser);
                 toast.success(`Welcome back, ${user.name}!`);
@@ -72,7 +70,7 @@ function LoginContent() {
             } else {
                 toast.error(response.error || "Invalid credentials");
             }
-        } catch (error) {
+        } catch {
             toast.error("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
@@ -129,7 +127,7 @@ function LoginContent() {
 
                     <Button
                         type="submit"
-                        className="w-full h-14 rounded-full bg-[#0a2a2a] text-white font-bold text-lg hover:bg-[#0d3d3d] transition-all active:scale-[0.98] shadow-2xl border border-white/5"
+                        className="h-14 w-full rounded-full border border-[#8ec9be] bg-[#1d5a56] text-lg font-bold text-white shadow-lg shadow-[#1d5a56]/15 transition-all hover:bg-[#236762] active:scale-[0.98]"
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -143,11 +141,11 @@ function LoginContent() {
                     </Button>
                 </form>
 
-                <p className="text-center text-white/40 text-sm font-medium">
+                <p className="text-center text-sm font-medium text-[#688782]">
                     Don&apos;t have an account?{" "}
                     <Link
                         href={ROUTES.REGISTER}
-                        className="text-white/80 font-bold hover:text-white transition-colors"
+                        className="font-bold text-[#1d5a56] transition-colors hover:text-[#163332]"
                     >
                         Register
                     </Link>
@@ -160,8 +158,8 @@ function LoginContent() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="flex bg-[#051111] items-center justify-center min-h-screen">
-                <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+            <div className="flex min-h-screen items-center justify-center bg-[#f7fbfa]">
+                <Loader2 className="h-8 w-8 animate-spin text-[#2c756e]" />
             </div>
         }>
             <LoginContent />

@@ -1,10 +1,11 @@
 import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/endpoint.const";
+import type { AuthUser, UserRole } from "@/store/auth.store";
 
 export interface LoginPayload {
     email: string;
     password: string;
-    role: "patient" | "doctor" | "admin";
+    role?: UserRole;
 }
 
 export interface RegisterPayload {
@@ -26,8 +27,8 @@ export interface DoctorSetupPayload {
 export interface AuthResponse {
     access_token: string;
     refresh_token: string;
-    user: any;
-    role: "patient" | "doctor" | "admin";
+    user: Omit<AuthUser, "role">;
+    role: UserRole;
 }
 
 export const authService = {

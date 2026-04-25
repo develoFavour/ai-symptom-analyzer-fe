@@ -48,33 +48,32 @@
 }
 
 :root {
-  /* Image 2 Inspired Palette: Deep Pine/Teal */
-  --primary: oklch(0.25 0.04 180);
+  /* Brightened pine/teal palette */
+  --primary: oklch(0.42 0.08 185);
   --primary-foreground: oklch(0.98 0 0);
 
-  --background: oklch(0.18 0.03 180);
-  /* Deep Background */
+  --background: oklch(0.24 0.03 185);
   --foreground: oklch(0.98 0.01 180);
 
-  --card: oklch(0.25 0.04 180 / 40%);
+  --card: oklch(0.31 0.03 185 / 70%);
   --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.22 0.04 180);
+  --popover: oklch(0.28 0.03 185);
   --popover-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.98 0 0 / 10%);
+  --secondary: oklch(0.98 0 0 / 14%);
   --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.25 0.02 180);
-  --muted-foreground: oklch(0.8 0.02 180);
+  --muted: oklch(0.32 0.02 185);
+  --muted-foreground: oklch(0.84 0.02 180);
 
-  --accent: oklch(0.45 0.1 190);
+  --accent: oklch(0.68 0.1 188);
   --accent-foreground: oklch(0.98 0 0);
 
   --destructive: oklch(0.55 0.2 25);
-  --border: oklch(0.98 0 0 / 20%);
-  --input: oklch(0.98 0 0 / 10%);
-  --ring: oklch(0.98 0 0 / 40%);
+  --border: oklch(0.98 0 0 / 18%);
+  --input: oklch(0.98 0 0 / 12%);
+  --ring: oklch(0.82 0.06 188 / 60%);
 
   --radius: 2rem;
   /* Large rounded corners from Image 2 */
@@ -116,6 +115,7 @@
 
   body {
     @apply bg-background text-foreground;
+    background-color: #173231;
   }
 
   html {
@@ -338,19 +338,19 @@
 
 /* Image 2 Glass Effect */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(25px) saturate(150%);
-  -webkit-backdrop-filter: blur(25px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 36px 0 rgba(9, 24, 24, 0.18);
 }
 
 .auth-input {
-  @apply bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-white/50 focus:ring-4 focus:ring-white/5 transition-all duration-300 rounded-3xl h-14 backdrop-blur-sm;
+  @apply h-14 rounded-3xl border border-[#d7ebe6] bg-[#f7fbfa] text-[#163332] placeholder:text-[#7a9792] transition-all duration-300 focus:border-[#8ec9be] focus:ring-4 focus:ring-[#d8f3ee];
 }
 
 .gradient-teal {
-  background: radial-gradient(circle at center, #1b4d4d 0%, #0d2a2a 100%);
+  background-color: #173231;
 }
 
 .gradient-accent {

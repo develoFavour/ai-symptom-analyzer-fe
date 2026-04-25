@@ -8,7 +8,6 @@ import { format } from "date-fns";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuLabel,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
@@ -65,65 +64,65 @@ export default function NotificationDropdown() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
-                <div className="h-11 w-11 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all relative group">
+                <div className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-[#d7ebe6] bg-[#f4fbf9] text-[#7d9a95] transition-all hover:bg-[#e8f6f3] hover:text-[#163332]">
                     <Bell className={cn("h-5 w-5", hasUnread && "animate-tada")} />
                     {hasUnread && (
-                        <span className="absolute top-3 right-3 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#050505] shadow-lg shadow-red-500/50" />
+                        <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500 shadow-sm" />
                     )}
                 </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass border-white/10 rounded-[2rem] p-0 w-80 text-white mt-4 overflow-hidden shadow-2xl">
-                <div className="p-6 border-b border-white/5 flex items-center justify-between">
+            <DropdownMenuContent align="end" className="mt-4 w-80 overflow-hidden rounded-[2rem] border border-[#d7ebe6] bg-white p-0 text-[#163332] shadow-[0_24px_60px_rgba(19,51,50,0.10)]">
+                <div className="flex items-center justify-between border-b border-[#e7f1ef] bg-[#f9fcfb] p-6">
                     <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest">Inbox</h3>
-                        <p className="text-[10px] text-white/30 font-bold uppercase mt-1">Updates & Alerts</p>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-[#163332]">Inbox</h3>
+                        <p className="mt-1 text-[10px] font-bold uppercase text-[#8aa39e]">Updates & Alerts</p>
                     </div>
                     {hasUnread && (
-                        <span className="px-2 py-0.5 bg-red-500/10 text-red-400 text-[10px] font-black rounded-lg">NEW</span>
+                        <span className="rounded-lg bg-red-50 px-2 py-0.5 text-[10px] font-black text-red-500">NEW</span>
                     )}
                 </div>
 
                 <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                     {isLoading && notifications.length === 0 ? (
-                        <div className="p-10 flex flex-col items-center justify-center gap-3">
-                            <Loader2 className="h-5 w-5 animate-spin text-white/20" />
-                            <span className="text-[10px] text-white/20 font-bold uppercase">Syncing...</span>
+                        <div className="flex flex-col items-center justify-center gap-3 p-10">
+                            <Loader2 className="h-5 w-5 animate-spin text-[#2c756e]" />
+                            <span className="text-[10px] font-bold uppercase text-[#8aa39e]">Syncing...</span>
                         </div>
                     ) : notifications.length === 0 ? (
                         <div className="p-12 text-center">
-                            <Bell className="h-10 w-10 mx-auto mb-4 text-white/5" />
-                            <p className="text-white/30 text-xs font-medium">All caught up here.</p>
+                            <Bell className="mx-auto mb-4 h-10 w-10 text-[#c7dad6]" />
+                            <p className="text-xs font-medium text-[#8aa39e]">All caught up here.</p>
                         </div>
                     ) : (
                         notifications.map((notif) => (
                             <div
                                 key={notif.id}
                                 className={cn(
-                                    "p-5 hover:bg-white/5 transition-all border-b border-white/5 cursor-pointer group relative",
-                                    !notif.is_read && "bg-white/[0.02]"
+                                    "group relative cursor-pointer border-b border-[#eef4f2] p-5 transition-all hover:bg-[#f9fcfb]",
+                                    !notif.is_read && "bg-[#f6fbfa]"
                                 )}
                                 onClick={() => !notif.is_read && markAsRead(notif.id)}
                             >
                                 <div className="flex gap-4">
-                                    <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-white/10 transition-colors">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d7ebe6] bg-[#f4fbf9] transition-colors group-hover:bg-[#eef8f5]">
                                         {getIcon(notif.type)}
                                     </div>
                                     <div className="space-y-1">
                                         <div className="flex items-center justify-between">
-                                            <h4 className={cn("text-xs font-bold", notif.is_read ? "text-white/40" : "text-white")}>
+                                            <h4 className={cn("text-xs font-bold", notif.is_read ? "text-[#7d9a95]" : "text-[#163332]")}>
                                                 {notif.title}
                                             </h4>
-                                            <span className="text-[9px] text-white/20 font-medium">
+                                            <span className="text-[9px] font-medium text-[#9bb1ad]">
                                                 {format(new Date(notif.created_at), "HH:mm")}
                                             </span>
                                         </div>
-                                        <p className="text-[11px] text-white/30 leading-relaxed line-clamp-2">
+                                        <p className="line-clamp-2 text-[11px] leading-relaxed text-[#698782]">
                                             {notif.message}
                                         </p>
                                     </div>
                                 </div>
                                 {!notif.is_read && (
-                                    <span className="absolute top-1/2 -translate-y-1/2 left-0 w-1 h-8 bg-emerald-500 rounded-r-full" />
+                                    <span className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-[#2c756e]" />
                                 )}
                                 {notif.ref_id && (
                                     <Link
@@ -136,8 +135,8 @@ export default function NotificationDropdown() {
                     )}
                 </div>
 
-                <div className="p-4 bg-white/5 border-t border-white/5 text-center">
-                    <button className="text-[10px] font-black text-white/30 uppercase tracking-widest hover:text-white transition-colors">
+                <div className="border-t border-[#e7f1ef] bg-[#f9fcfb] p-4 text-center">
+                    <button className="text-[10px] font-black uppercase tracking-widest text-[#7d9a95] transition-colors hover:text-[#163332]">
                         View Clear All
                     </button>
                 </div>

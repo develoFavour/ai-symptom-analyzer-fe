@@ -9,11 +9,11 @@ export default function SymptomCheckerSession() {
 
     // Optional Check if invalid
     if (!chatId) {
-        return <div className="p-8 text-white/50 text-center">Invalid session ID.</div>;
+        return <div className="p-8 text-center text-[#698782]">Invalid session ID.</div>;
     }
 
     return (
-        <div className="-mx-8 -mt-8 -mb-8 h-[calc(100vh-5rem)] flex flex-col bg-[#050505]">
+        <div className="-mx-8 -mt-8 -mb-8 flex h-[calc(100vh-5rem)] flex-col bg-[#f7fbfa]">
             <SymptomChatInterface chatId={chatId} />
         </div>
     );

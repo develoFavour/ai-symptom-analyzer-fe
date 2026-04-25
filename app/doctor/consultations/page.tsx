@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { 
-    Search, Filter, ChevronRight, Clock, User, 
-    Stethoscope, Loader2, Calendar, LayoutGrid, List, Bot, AlertTriangle
+    Search, ChevronRight, Clock, User,
+    Stethoscope, Loader2, AlertTriangle
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -55,31 +55,31 @@ export default function DoctorConsultationsQueue() {
     });
 
     const urgencyConfig = {
-        routine: "text-emerald-400 bg-emerald-500/10",
-        soon: "text-amber-400 bg-amber-500/10",
-        urgent: "text-red-400 bg-red-500/10",
+        routine: "bg-emerald-500/10 text-emerald-600",
+        soon: "bg-amber-500/10 text-amber-600",
+        urgent: "bg-red-500/10 text-red-600",
     };
 
     const statusConfig = {
-        pending: "border-amber-500/20 text-amber-500 bg-amber-500/5",
-        answered: "border-emerald-500/20 text-emerald-500 bg-emerald-500/5",
-        closed: "border-white/10 text-white/30 bg-white/5",
+        pending: "border-amber-200 bg-amber-50 text-amber-700",
+        answered: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        closed: "border-slate-200 bg-slate-50 text-slate-500",
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-20">
+        <div className="mx-auto max-w-6xl space-y-8 pb-20 text-[#163332]">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Consultation Queue</h1>
-                    <p className="text-white/50 mt-2">Manage and respond to all assigned patient requests.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-[#163332]">Consultation Queue</h1>
+                    <p className="mt-2 text-[#698782]">Manage and respond to all assigned patient requests.</p>
                 </div>
                 
                 {/* Stats summary */}
                 <div className="flex gap-4">
-                    <div className="bg-white/5 border border-white/10 px-5 py-3 rounded-2xl flex flex-col items-center">
-                        <span className="text-white font-bold text-xl">{queue.filter(c => c.status === "pending").length}</span>
-                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest mt-0.5">Pending</span>
+                    <div className="flex flex-col items-center rounded-2xl border border-[#d7ebe6] bg-white px-5 py-3 shadow-[0_10px_24px_rgba(19,51,50,0.05)]">
+                        <span className="text-xl font-bold text-[#163332]">{queue.filter(c => c.status === "pending").length}</span>
+                        <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[#8aa39e]">Pending</span>
                     </div>
                 </div>
             </div>
@@ -87,40 +87,40 @@ export default function DoctorConsultationsQueue() {
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
+                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9bb3ae] transition-colors group-focus-within:text-[#2c756e]" />
                     <input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search by patient name or symptom keyword..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all font-medium"
+                        className="w-full rounded-2xl border border-[#d7ebe6] bg-white py-3 pl-12 pr-4 font-medium text-[#163332] placeholder:text-[#9bb3ae] shadow-[0_10px_24px_rgba(19,51,50,0.04)] transition-all focus:border-[#9dcfc6] focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                     />
                 </div>
                 
                 <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-white focus:outline-none focus:border-white/30 appearance-none font-bold text-sm cursor-pointer"
+                    className="cursor-pointer appearance-none rounded-2xl border border-[#d7ebe6] bg-white px-6 py-3 text-sm font-bold text-[#163332] shadow-[0_10px_24px_rgba(19,51,50,0.04)] transition-all focus:border-[#9dcfc6] focus:outline-none focus:ring-4 focus:ring-[#dff2ed]"
                 >
-                    <option value="all" className="bg-[#050505]">All Statuses</option>
-                    <option value="pending" className="bg-[#050505]">Pending Only</option>
-                    <option value="answered" className="bg-[#050505]">Answered</option>
-                    <option value="closed" className="bg-[#050505]">Closed</option>
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending Only</option>
+                    <option value="answered">Answered</option>
+                    <option value="closed">Closed</option>
                 </select>
             </div>
 
             {/* List */}
             {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-32 gap-3 text-white/20">
-                    <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
+                <div className="flex flex-col items-center justify-center gap-3 py-32 text-[#8aa39e]">
+                    <Loader2 className="h-10 w-10 animate-spin text-[#2c756e]" />
                     <span>Retrieving patient queue...</span>
                 </div>
             ) : filteredQueue.length === 0 ? (
-                <div className="bg-white/5 border border-white/5 rounded-[3rem] p-24 text-center border-dashed">
-                    <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Stethoscope className="h-10 w-10 text-white/10" />
+                <div className="rounded-[3rem] border border-dashed border-[#d7ebe6] bg-white p-24 text-center shadow-[0_18px_40px_rgba(19,51,50,0.04)]">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#f4fbf9]">
+                        <Stethoscope className="h-10 w-10 text-[#c4d7d3]" />
                     </div>
-                    <h3 className="text-xl font-bold text-white/60">No matching requests found</h3>
-                    <p className="text-white/30 text-sm mt-1 max-w-sm mx-auto leading-relaxed">Try adjusting your filters or search terms to find what you're looking for.</p>
+                    <h3 className="text-xl font-bold text-[#4f6d68]">No matching requests found</h3>
+                    <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-[#8aa39e]">Try adjusting your filters or search terms to find what you&apos;re looking for.</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -128,27 +128,27 @@ export default function DoctorConsultationsQueue() {
                         <Link
                             key={consult.id}
                             href={`/doctor/consultations/${consult.id}`}
-                            className="group bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/20 hover:bg-white/8 transition-all"
+                            className="group flex flex-col justify-between gap-6 rounded-3xl border border-[#dcece8] bg-white p-6 shadow-[0_14px_32px_rgba(19,51,50,0.05)] transition-all hover:border-[#bfded7] hover:bg-[#fcfffe] md:flex-row md:items-center"
                         >
                             <div className="flex items-center gap-6">
-                                <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20 transition-all shadow-lg">
-                                    <User className="h-7 w-7 text-white/20 group-hover:text-emerald-400" />
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#d7ebe6] bg-[#f4fbf9] shadow-sm transition-all group-hover:border-[#c6e4dd] group-hover:bg-[#eef8f5]">
+                                    <User className="h-7 w-7 text-[#8aa39e] group-hover:text-[#2c756e]" />
                                 </div>
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-3">
-                                        <h4 className="font-bold text-white text-lg group-hover:text-emerald-500 transition-colors">{consult.user.name}</h4>
+                                        <h4 className="text-lg font-bold text-[#163332] transition-colors group-hover:text-[#2c756e]">{consult.user.name}</h4>
                                         <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border", statusConfig[consult.status as keyof typeof statusConfig])}>
                                             {consult.status}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-white/40 line-clamp-1 italic max-w-md">"{consult.symptoms}"</p>
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter flex items-center gap-1.5"><Clock className="h-3 w-3" /> {format(new Date(consult.created_at), "MMM d, HH:mm")}</span>
+                                    <p className="max-w-md line-clamp-1 text-sm italic text-[#698782]">&ldquo;{consult.symptoms}&rdquo;</p>
+                                    <div className="mt-2 flex items-center gap-4">
+                                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-tighter text-[#8aa39e]"><Clock className="h-3 w-3" /> {format(new Date(consult.created_at), "MMM d, HH:mm")}</span>
                                         <div className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter", urgencyConfig[consult.urgency])}>
                                             {consult.urgency} priority
                                         </div>
                                         {consult.session?.diagnoses?.some(d => d.confidence === "high") && (
-                                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-black uppercase tracking-tighter rounded-md animate-pulse">
+                                            <div className="flex items-center gap-1.5 rounded-md border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter text-red-500 animate-pulse">
                                                 <AlertTriangle className="h-3 w-3" /> AI RED FLAG
                                             </div>
                                         )}
@@ -158,11 +158,11 @@ export default function DoctorConsultationsQueue() {
 
                             <div className="flex items-center gap-6 self-end md:self-auto">
                                 <div className="text-right hidden lg:block">
-                                    <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Tracking Reference</p>
-                                    <p className="text-xs text-white/40 font-mono mt-0.5">{consult.id.slice(0, 12)}</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#8aa39e]">Tracking Reference</p>
+                                    <p className="mt-0.5 font-mono text-xs text-[#698782]">{consult.id.slice(0, 12)}</p>
                                 </div>
-                                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-all">
-                                    <ChevronRight className="h-6 w-6 text-white/20 group-hover:text-white" />
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f4fbf9] transition-all group-hover:bg-[#eef8f5]">
+                                    <ChevronRight className="h-6 w-6 text-[#8aa39e] group-hover:text-[#163332]" />
                                 </div>
                             </div>
                         </Link>
