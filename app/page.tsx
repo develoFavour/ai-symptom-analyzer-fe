@@ -104,17 +104,23 @@ export default function Home() {
 							Clinical-Grade Intelligence
 						</div>
 
-						<h1 className="animate-slide-up text-5xl font-medium leading-[1.05] tracking-tight text-[#163332] lg:text-8xl">
-							Redefining <br />
+						<h1 className="animate-slide-up text-4xl font-medium leading-[1.08] tracking-tight text-[#163332] sm:text-5xl lg:text-7xl">
+							Design and Development of an{" "}
 							<span className="font-light italic text-[#5e7f79]">
-								Human Triage
-							</span>
+								AI Powered Symptom Checker
+							</span>{" "}
+							for Preliminary Health Assessment
 						</h1>
 
-						<p className="mx-auto max-w-xl animate-slide-up text-lg leading-relaxed font-light text-[#5f7e79] delay-100 lg:mx-0 lg:text-xl">
-							Advanced AI models trained on verified clinical datasets to
-							provide secure, instant health diagnostics and seamless provider
-							connectivity.
+						<p className="mx-auto max-w-2xl animate-slide-up text-base leading-relaxed font-light text-[#5f7e79] delay-100 lg:mx-0 lg:text-lg">
+							This study seeks to design, analyze, and develop an AI-powered
+							symptom checker capable of interpreting user-reported symptoms
+							using NLP and a structured knowledge-based reasoning system. The
+							system uses validated datasets from trusted institutions to
+							generate evidence-based preliminary health assessments, supporting
+							accessibility, reducing misinformation, and helping users make
+							informed preliminary health decisions without replacing medical
+							professionals.
 						</p>
 
 						<div className="flex flex-col justify-center gap-4 pt-2 animate-slide-up delay-200 sm:flex-row lg:justify-start lg:gap-6">

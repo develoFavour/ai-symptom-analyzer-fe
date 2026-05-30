@@ -8,7 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import {
+    ArrowRight,
+    GraduationCap,
+    Loader2,
+    ShieldCheck,
+    Stethoscope,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,12 +34,47 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const loginRoles = [
+    {
+        value: "student",
+        label: "Student",
+        description: "Access the symptom checker for preliminary health assessment.",
+        icon: GraduationCap,
+    },
+    {
+        value: "doctor",
+        label: "Doctor",
+        description: "Review consultations, patient summaries, and AI-assisted reports.",
+        icon: Stethoscope,
+    },
+    {
+        value: "admin",
+        label: "Admin",
+        description: "Manage users, doctors, and the system knowledge base.",
+        icon: ShieldCheck,
+    },
+] as const;
+
 function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const { setAuth } = useAuthStore();
     const redirect = searchParams.get("redirect") || ROUTES.PATIENT.DASHBOARD;
+    const selectedRole = loginRoles.find((role) => role.value === searchParams.get("role"));
+
+    function getRoleHref(role: string) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("role", role);
+        return `${ROUTES.LOGIN}?${params.toString()}`;
+    }
+
+    function getRoleSelectionHref() {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("role");
+        const query = params.toString();
+        return query ? `${ROUTES.LOGIN}?${query}` : ROUTES.LOGIN;
+    }
 
     // Show toast if user was redirected due to session expiry
     useEffect(() => {
@@ -77,10 +118,46 @@ function LoginContent() {
         }
     }
 
+    if (!selectedRole) {
+        return (
+            <AuthLayout
+                title="Choose Login Type"
+                subtitle="Select the account category you want to continue with."
+            >
+                <div className="space-y-4">
+                    {loginRoles.map((role) => {
+                        const Icon = role.icon;
+
+                        return (
+                            <Link
+                                key={role.value}
+                                href={getRoleHref(role.value)}
+                                className="group flex items-center gap-4 rounded-3xl border border-[#d8ebe7] bg-[#f8fcfb] p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#9ecfc6] hover:bg-white hover:shadow-[0_16px_40px_rgba(19,51,50,0.08)]"
+                            >
+                                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#d4e9e5] bg-[#eaf6f3] text-[#1d5a56] transition-all group-hover:bg-[#1d5a56] group-hover:text-white">
+                                    <Icon className="h-7 w-7" />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-lg font-bold text-[#163332]">
+                                        Login as {role.label}
+                                    </span>
+                                    <span className="mt-1 block text-sm leading-relaxed text-[#688782]">
+                                        {role.description}
+                                    </span>
+                                </span>
+                                <ArrowRight className="h-5 w-5 shrink-0 text-[#6d918b] transition-all group-hover:translate-x-1 group-hover:text-[#1d5a56]" />
+                            </Link>
+                        );
+                    })}
+                </div>
+            </AuthLayout>
+        );
+    }
+
     return (
         <AuthLayout
             title="Welcome!"
-            subtitle="Login to your account"
+            subtitle={`Login as ${selectedRole.label.toLowerCase()}`}
         >
             <div className="space-y-8">
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -148,6 +225,16 @@ function LoginContent() {
                         className="font-bold text-[#1d5a56] transition-colors hover:text-[#163332]"
                     >
                         Register
+                    </Link>
+                </p>
+
+                <p className="text-center text-sm font-medium text-[#688782]">
+                    Not logging in as {selectedRole.label.toLowerCase()}?{" "}
+                    <Link
+                        href={getRoleSelectionHref()}
+                        className="font-bold text-[#1d5a56] transition-colors hover:text-[#163332]"
+                    >
+                        Change login type
                     </Link>
                 </p>
             </div>
