@@ -39,8 +39,18 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const requestUrl = originalRequest?.url || "";
+        const isPublicAuthRequest = [
+            "/auth/login",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/verify-email",
+            "/auth/doctor/setup",
+            "/auth/forgot-password",
+            "/auth/reset-password",
+        ].some((path) => requestUrl.includes(path));
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isPublicAuthRequest) {
             if (isRefreshing) {
                 // Queue requests while a refresh is in progress
                 return new Promise((resolve, reject) => {

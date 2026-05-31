@@ -439,7 +439,7 @@ export default function AdminDashboard() {
 						</button>
 					</div>
 
-					<div className="rounded-[2.5rem] border border-[#dcece8] bg-white p-8 shadow-[0_14px_32px_rgba(19,51,50,0.05)]">
+					<div className="rounded-[2rem] border border-[#dcece8] bg-white p-6 shadow-[0_14px_32px_rgba(19,51,50,0.05)] sm:rounded-[2.5rem] sm:p-8">
 						<h4 className="mb-6 text-[10px] font-black uppercase tracking-widest text-[#8aa39e]">
 							System Logs
 						</h4>
@@ -582,14 +582,14 @@ function HealthStat({ label, status, desc, icon }: HealthStatProps) {
 
 function ActionItem({ user, action, time }: ActionItemProps) {
 	return (
-		<div className="flex items-center justify-between text-[10px] transition-opacity hover:opacity-80">
-			<div className="flex items-center gap-3">
-				<div className="h-1.5 w-1.5 rounded-full bg-[#c6d9d4]" />
-				<p className="leading-tight font-bold uppercase tracking-widest text-[#698782]">
+		<div className="flex min-w-0 flex-col gap-1 text-[10px] transition-opacity hover:opacity-80 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+			<div className="flex min-w-0 items-start gap-3">
+				<div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c6d9d4]" />
+				<p className="min-w-0 text-balance break-words leading-tight font-bold uppercase tracking-[0.12em] text-[#698782] [overflow-wrap:anywhere] sm:tracking-widest">
 					<span className="text-[#163332]">{user}</span> {action}
 				</p>
 			</div>
-			<span className="ml-3 shrink-0 font-mono text-[9px] text-[#9bb3ae]">
+			<span className="pl-4 font-mono text-[9px] text-[#9bb3ae] sm:pl-0 sm:text-right">
 				{time}
 			</span>
 		</div>
